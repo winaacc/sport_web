@@ -45,12 +45,12 @@ module.exports = function(webpackConfig, env) {
   });
 
   // 引入 babel-plugin-import
-  webpackConfig.babel.plugins.push(['import', { libraryName: 'antd-mobile', style: 'css' }]);
+  webpackConfig.babel.plugins.push(['import', { libraryName: 'antd-mobile', style: true }]);
   // 引入高清方案
-  webpackConfig.postcss.push(pxtorem({
+  /*webpackConfig.postcss.push(pxtorem({
     rootValue: 100,
     propWhiteList: [],
-  }));
+  }));*/
 
   const svgDirs = [
     require.resolve('antd-mobile').replace(/warn\.js$/, ''),  // 1. 属于 antd-mobile 内置 svg 文件

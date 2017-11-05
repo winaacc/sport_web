@@ -10,5 +10,5 @@ module.exports = {
       });
     }, 500);
   },
-
+  'GET /custom/users':'http://jsonplaceholder.typicode.com/users',
 };

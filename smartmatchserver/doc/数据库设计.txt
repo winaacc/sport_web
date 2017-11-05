@@ -1,0 +1,273 @@
+////////////////////////////////////
+table_user_base_info
+uid:-1,               //用户唯一ID
+phonenumber:"",       //手机号码
+password:"",          //密码
+nickname:"",          //昵称
+sex:"",               //性别
+headerimage:null,     //头像
+bgimage:null,         //主页背景图片
+birthday:null,        //生日
+weight:null,          //体重
+height:null,          //身高
+isstudent:null,       //是否是学生
+schoolgrade:null,     //年级,只有是学生，此字段才生效，幼儿园，小学，初中，高中，大学，研究生
+school:null,          //学校，如果是学生，则代表就读学校，如果不是，则代表毕业院校
+company:null,         //就职公司
+address:null,         //居住地址，精确到小区或村镇
+
+//////////////////////////////////////
+table_user_sport_info
+uid:-1,
+projectoflove:[],       //喜欢的体育项目，数组，可以有多个
+currentproject:null,    //当前显示的体育项目，可以切换
+forcetrainlist:[],      //力量训练列表
+attentionmatchlist:[],  //关注的比赛列表
+attentionteamlist:[],   //关注的球队
+
+//////////////////////////////////////
+table_user_social_info
+uid:-1,
+gold:500,                  //金币
+money:0,                   //人民币
+level:1,                   //等级
+exp:0,                     //经验
+friendlist:[],             //好友列表
+attentionlist:[],          //关注列表
+fanlist:[],                //粉丝列表
+systemmessagelist:[],      //系统消息列表，例如请求加入球队，请求加为好友
+privatemessagelist:[],     //私信列表
+dongtai:[],                //文字，图片，视频
+
+//////////////////////////////////////////
+table_user_project_info
+
+project_uid:-1,          //唯一ID
+project_name:"",         //项目名称，篮球，足球，羽毛球等
+achievement:[],          //获得成就
+currenttask:1,           //当前的任务
+title:null,              //称号
+balllevel:null,          //打球的水平
+sporttime:null,          //球龄
+courtposition:null,      //场上的位置
+skillofgood:null,        //擅长的技术
+teams:[],                //球队数组，一个用户可以属于多只球队
+currentteam:null,        //当前操作的球队，可以自由切换，但一次只能显示和操作一支球队
+p2pMatches:[],           //一对一比赛
+audiencematch:[],        //野球比赛，（1）比赛双方不代表任何球队，比赛是独立存在的，不隶属其他实体（2）比赛是正式比赛，但该用户不属于比赛双方的球队，是临时加入的。
+
+/////////////////////////////////////////////
+table_team_info
+team_uid:-1,             //唯一ID
+teamname:"",             //球队名称
+teambadge:"",            //队徽
+shorthand:"",            //字母简写
+creater:null,            //球队创建者
+owner:null,              //球队拥有者
+manager:null,            //球队经理
+captain:null,            //队长
+currentmembers:[],       //当前的全部队员
+city:null,               //球队所在城市
+sporttype:"",            //运动类型，例如足球，篮球
+coach:null,              //教练
+league:null,             //日常联赛，每年举办一次，赛制自定
+iswinaacup:false,        //是否进入官方冠军杯赛，冠军杯赛分5级：市，省／州／区，国，洲，世界
+dongtai:[],              //动态
+slogan:"",               //口号
+friendmatches:[],        //友谊赛
+activities:[],           //活动，球队内部比赛，球队训练等。
+messagelist:[],          //球队消息列表
+createtime:""            //创建时间
+
+//////////////////////////////////////////////
+table_league_info
+league_uid:-1,               //唯一ID
+leaguename:"",               //联赛名称
+league_type:"",              //联赛类型：日常联赛(球队组成固定，每年都举办，球队都在一个区域)，杯赛（球队不固定，举办日期不固定）
+leaguebadge:"",              //联赛标志
+dongtai:[],                  //动态
+slogan:"",                   //口号
+sporttype:"",                //运动类型，例如足球，篮球
+creater:null,                //联赛创建者
+city:"",                     //联赛所在城市
+currentteams:[],             //当前球队
+seasons:[],                  //赛季列表
+createtime:""                //创建时间
+
+////////////////////////////////////////////
+table_season_info
+season_uid:-1,              //唯一ID
+league_uid:-1,              //联赛唯一ID
+referees:[],                //联赛裁判
+teams:[],                   //参赛球队
+state:0,                    //0:未开始，1:进行中，2:结束
+theopening:null,            //揭幕时间
+Champion:null,              //冠军
+rules:"",                   //赛制：主客场循环制，单场循环制，杯赛，杯赛+排名赛，小组循环+出线队伍淘汰，常规赛+季后赛
+schedule:[]                 //赛程
+
+//////////////////////////////////////////
+table_activity_info
+
+activity_uid:-1,            //唯一ID
+title:"",                   //题目
+content:"",                 //内容
+participant:[],             //参与活动的人
+location:"",                //活动地点
+starttime:null,             //活动开始时间
+endtime:null,               //活动结束时间
+creater:null,               //创建者
+createtime:Date.now(),      //创建时间
+
+
+//////////////////////////////////////////////
+table_match_info
+
+match_uid:-1,              //唯一ID
+matchname:"",              //比赛名称
+gamecount:0,               //比赛局数，必须是单数
+games:[],                  //每局比赛
+rules:{                    //比赛规则
+    basket:{
+        sections : 4,          //全场分4节
+        sectiontime : 6,       //单节分钟数
+        haveFreethrow : true,  //是否有罚球
+        havefive : true,       //是否有界外球5秒规则
+        ishalf : true,         //是否是半场
+        playernum : 5,         //每队的人数
+        haveeight : true,      //是否有8秒进前场规则
+        havethree : false,     //是否有防守和进攻3秒规则
+        attacktime : 24,       //进攻时间
+        timeout : 2,           //每节的暂停数
+        timeoutinterval : 60,  //暂停时间
+    },
+    football:{
+        sections : 2,          //全场分2节
+        sectiontime : 45,      //单节分钟数
+        playernum : 11,        //每队的人数
+    },
+    Badminton:{}
+},
+sporttype:'',              //足球，篮球，羽毛球等
+matchtype :'',             //比赛类型：一对一，团体正式比赛，团体临时比赛
+winner:null,               //胜利方
+sideone:null,              //参与方1，个人或球队
+sidetwo:null,              //参与方2，个人或球队
+league_uid:null,           //联赛唯一ID
+season_uid:null,           //赛季唯一ID
+matchdate: '',             //比赛日期
+matchtime : "",            //比赛开始时间
+status : 0                 //0代表初始化完成，1代表进行中，2代表结束了，3代表比赛准备好了，随时可以开赛
+creater : null,            //创建者
+createtime : Date.now(),   //创建时间
+
+//////////////////////////////////////////////
+table_game_info
+
+game_uid:-1,                //一局比赛唯一ID
+match_uid:-1,               //比赛唯一ID
+matchdate:'',               //比赛日期
+matchtime:'',               //比赛开始时间
+location:"",                //比赛地点
+referee : null,             //裁判
+sideoneplayers:[],          //上场球员名单
+sidetwoplayers:[],          //上场球员名单
+room_uid:-1,                //比赛过程实体唯一ID
+status : 0                  //0代表未开始，1代表进行中，2代表结束了，3代表比赛准备好了，随时可以开赛
+
+
+//////////////////////////////////////////////
+table_room_info
+
+room_uid:-1,                //比赛过程实体唯一ID
+game_uid:-1,                //一局比赛唯一ID
+Audiences:[],               //观众
+cheerleaders:[],            //啦啦队
+commentators:[],            //解说员
+camgirl:null,               //女主播
+sideonecurrentscore : 0,    //即时比分
+sidetwocurrentscore : 0,    //即时比分
+currentsection : 1,         //当前比赛是第几节
+currenttime : 6*60,         //当前一节的倒计时，0代表结束
+currentattacktime : 24,     //24秒计时
+sideonecurrenttimeout:2,    //可用暂停数
+sidetwocurrenttimeout:2,    //可用暂停数
+sideoneteamfoulcount:0,     //本节全队犯规次数
+sidetwoteamfoulcount:0,     //本节全队犯规次数
+ballcatcher : 0,            //0代表两队都没有球权，1代表队伍1获得球权，2代表队伍2获得球权
+matchrecord : [],           //比赛记录，记录比赛的每一步进程，可以生成文字直播，格式{时间，操作}
+chat:[],                    // 聊天室
+Technician : null,          //计分员，负责计分，计时，技术统计,换人，暂停，可多人
+Photographer : null,        //摄影师
+Cameraman : null,           //摄像师
+playerdata:{},              //球员技术统计
+teamdata:{}                 //球队技术统计
+
+///////////////////////////////////////////////
+table_court_info
+
+court_uid:-1,              //球场唯一ID
+courtname:"",              //球场名称
+images:[],                 //球场图片
+location:"",               //地点
+latitude:null,             //纬度
+longitude:null,            //经度
+rectangle:null,            //球场范围
+playeringusers:[],         //在该球场运动中的用户
+
+////////////////////////////////////////////////
+table_lbs_info
+
+player_uid:-1,             //用户唯一ID
+city:"",                   //用户居住的城市
+checkinhistory:[],         //签到历史，包括经纬度，时间等
+
+//////////////////////////////////////////////
+table_referee_info
+
+player_uid:-1,             //用户唯一ID
+testscores:0,              //裁判考试的分数
+enforced_game_num:0,        //执法的场次
+enforced_games:[],          //执法过的比赛
+price:50,                  //执法一场的费用
+
+table_coach_info
+
+player_uid:-1,             //用户唯一ID
+testscores:0,              //教练考试的分数
+currentteam:null,          //当前执教的球队
+coachedteams:[],           //执教过的球队
+
+////////////////////////////////////////////////
+table_persist_match_info
+
+persist_uid:-1,            //坚持到底比赛唯一ID
+creater:null,              //比赛创建者
+target:"",                 //比赛的目标，例如每天做30个仰卧起坐
+startdate:"",              //开始日期
+enddate:"",                //结束日期
+permoney:"",               //每个参与者要上交的人民币
+totalmoney:0,              //人民币总额
+players:[],                //参与者
+minnumber:2,               //最小人数
+maxnumber:30,              //最多人数
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
