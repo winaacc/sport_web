@@ -1,4 +1,5 @@
 import fetch from 'dva/fetch';
+var server = "http://192.168.0.105"
 
 function parseJSON(response) {
   return response.json();
@@ -22,7 +23,7 @@ function checkStatus(response) {
  * @return {object}           An object containing either "data" or "err"
  */
 export default function request(url, options) {
-  return fetch(url, options)
+  return fetch(server+url, options)
     .then(checkStatus)
     .then(parseJSON)
     .then((data) => ({ data }))

@@ -185,7 +185,7 @@ export default class App extends React.Component{
             image_base64:this.uploadFileResult
         }
         Toast.loading("脸部识别中...")
-        var result = await request("http://192.168.0.105:3000/facedetect",{
+        var result = await request("/facedetect",{
             method:'POST',
             headers: {
                 //'Content-Type': 'application/x-www-form-urlencoded'
