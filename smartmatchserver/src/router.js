@@ -299,7 +299,7 @@ module.exports = {
                 appId: 'wx6a013f923419dfb4',
                 appSecret: 'wx6a013f923419dfb4',
                 appToken: 'SHANG',
-                cache_json_file:'/tmp'
+                //cache_json_file:'/tmp'
             }
             signature.getSignature(config)(url, function(error, result) {
                 console.log("error:"+error);
