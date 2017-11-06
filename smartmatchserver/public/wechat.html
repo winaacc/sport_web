@@ -19,6 +19,7 @@
             </h1>
             <button id="qrcode">扫描二维码</button>
             <p class="page__desc">WeUI 是一套同微信原生视觉体验一致的基础样式库，由微信官方设计团队为微信内网页和微信小程序量身设计，令用户的使用感知更加统一。</p>
+            <button id="mylocation">地理位置</button>
         </div>
         <div class="page__bd page__bd_spacing">
             <ul>
@@ -240,6 +241,27 @@
                     success: function (res) {
                         var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
                         alert(result);
+                    }
+                });
+            })
+
+            $('#mylocation').on('click',function(){
+                wx.getLocation({
+                    type: 'gcj02', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+                    success: function (res) {
+                        var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+                        var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+                        var speed = res.speed; // 速度，以米/每秒计
+                        var accuracy = res.accuracy; // 位置精度
+
+                        wx.openLocation({
+                            latitude: latitude, // 纬度，浮点数，范围为90 ~ -90
+                            longitude: longitude, // 经度，浮点数，范围为180 ~ -180。
+                            name: '篮球场', // 位置名
+                            address: '丈八四路', // 地址详情说明
+                            scale: 1, // 地图缩放级别,整形值,范围从1~28。默认为最大
+                            infoUrl: '' // 在查看位置界面底部显示的超链接,可点击跳转
+                        });
                     }
                 });
             })

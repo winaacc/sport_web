@@ -219,12 +219,15 @@ $(function () {
                 nonceStr: res.nonceStr,
                 signature: res.signature,
                 jsApiList: [
-                    "scanQRCode"
+                    "scanQRCode",
+                    "openLocation",
+                    "getLocation"
                 ]
             });
             wx.ready(function () {
                 wx.checkJsApi({
-                    jsApiList: ['scanQRCode'], // 需要检测的JS接口列表，所有JS接口列表见附录2,
+                    jsApiList: ['scanQRCode',"openLocation",
+                        "getLocation"], // 需要检测的JS接口列表，所有JS接口列表见附录2,
                     success: function(res) {
                         console.log(res);
                     }
