@@ -297,7 +297,7 @@ module.exports = {
             console.log("getwechatsignature:url:"+url);
             var config = {
                 appId: 'wx6a013f923419dfb4',
-                appSecret: 'wx6a013f923419dfb4',
+                appSecret: 'cb15cc7a2a6edb90cacd35b6ba5ec150',
                 appToken: 'SHANG',
                 cache_json_file:'/tmp'
             }
