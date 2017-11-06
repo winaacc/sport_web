@@ -8,6 +8,7 @@ var verifyToken = require("../utils/token").verifyToken;
 var upload = require('../utils/uploadQiniu')
 var request = require('request')
 var fs = require('fs')
+var signature = require('wx_jsapi_sign')
 
 module.exports = {
 	init:function(app){
@@ -289,6 +290,28 @@ module.exports = {
                 //console.log(err);
                 res.end(JSON.stringify(body));
             })
+        })
+
+        app.get('/getwechatsignature',function(req,res){
+            var url = req.query.url;
+            console.log("getwechatsignature:url:"+url);
+            var config = {
+                appId: 'wx6a013f923419dfb4',
+                appSecret: 'wx6a013f923419dfb4',
+                appToken: 'SHANG',
+                cache_json_file:'/tmp'
+            }
+            signature.getSignature(config)(url, function(error, result) {
+                console.log("error:"+error);
+                console.log("result:"+JSON.stringify(result));
+                if (error) {
+                    res.json({
+                        'error': error
+                    });
+                } else {
+                    res.json(result);
+                }
+            });
         })
 	}
 }
