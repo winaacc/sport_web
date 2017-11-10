@@ -10,6 +10,11 @@ import ShortVideoPage from './routes/ShortVideoPage'
 import CreateFaceID from './routes/CreateFaceID'
 import UploadFilePage from './routes/UploadFilePage'
 import MyQRCodePage from './routes/MyQRCodePage'
+import BaiduMap from './routes/BaiduMap'
+import LotteryTurntable from './routes/LotteryTurntable'
+import FaceIDLogin from './routes/FaceIDLogin'
+import FaceUsers from './routes/FaceUsers'
+import SelfPersonPage from './routes/SelfPersonPage'
 import {
     Button,
     Toast,
@@ -80,6 +85,11 @@ var pages = {
     CreateFaceID:{screen:CreateFaceID},
     UploadFilePage:{screen:UploadFilePage},
     MyQRCodePage:{screen:MyQRCodePage},
+    BaiduMap:{screen:BaiduMap},
+    LotteryTurntable:{screen:LotteryTurntable},
+    FaceIDLogin:{screen:FaceIDLogin},
+    FaceUsers:{screen:FaceUsers},
+    SelfPersonPage:{screen:SelfPersonPage},
 }
 
 var Main = (params)=>{

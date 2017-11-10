@@ -38,6 +38,16 @@ var styles = {
 
 const myImg = src => <img src={`https://gw.alipayobjects.com/zos/rmsportal/${src}.svg`} className="am-icon am-icon-xs" alt="" />;
 
+const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
+         <svg
+       className={`am-icon am-icon-${type.substr(1)} am-icon-${size} ${className}`}
+       {...restProps}
+     >
+       <use xlinkHref={type} /> {/* svg-sprite-loader@0.3.x */}
+       {/* <use xlinkHref={#${type.default.id}} /> */} {/* svg-sprite-loader@lastest */}
+     </svg>
+ );
+
  export  default class WebStackNavigator extends React.Component{
     constructor(props){
         super(props);
@@ -111,11 +121,23 @@ const myImg = src => <img src={`https://gw.alipayobjects.com/zos/rmsportal/${src
     }
 
      onSelect = (opt) => {
-         // console.log(opt.props.value);
+         console.log(opt.props.value);
          this.setState({
              visible: false,
              selected: opt.props.value,
          });
+         if(opt.props.value == "Qrcode"){
+             this.navigate("MyQRCodePage")
+         }else if(opt.props.value == "scan"){
+             wx.scanQRCode({
+                 needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                 scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                 success: function (res) {
+                     var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                     alert(result);
+                 }
+             });
+         }
      };
      handleVisibleChange = (visible) => {
          this.setState({
@@ -152,7 +174,8 @@ const myImg = src => <img src={`https://gw.alipayobjects.com/zos/rmsportal/${src
                 <div style={styles.page}>
                     <NavBar
                         mode="dark"
-                        leftContent={<Icon key="1" type="ellipsis" />}
+                        leftContent={<CustomIcon size="md" type={require('../assets/saomiao.svg')} />}
+                        onLeftClick={() => this.navigate("MyQRCodePage")}
                         rightContent={
                             <Popover mask
                                      overlayClassName="fortest"
@@ -160,7 +183,7 @@ const myImg = src => <img src={`https://gw.alipayobjects.com/zos/rmsportal/${src
                                      visible={this.state.visible}
                                      overlay={[
                                          (<Popover.Item key="4" value="scan" icon={myImg('tOtXhkIWzwotgGSeptou')} data-seed="logId">Scan</Popover.Item>),
-                                         (<Popover.Item key="5" value="special" icon={myImg('PKAgAqZWJVNwKsAJSmXd')} style={{ whiteSpace: 'nowrap' }}>My Qrcode</Popover.Item>),
+                                         (<Popover.Item key="5" value="Qrcode" icon={myImg('PKAgAqZWJVNwKsAJSmXd')} style={{ whiteSpace: 'nowrap' }}>My Qrcode</Popover.Item>),
                                          (<Popover.Item key="6" value="button ct" icon={myImg('uQIYTFeRrjPELImDRrPt')}>
                                              <span style={{ marginRight: 5 }}>Help</span>
                                          </Popover.Item>),
@@ -179,8 +202,10 @@ const myImg = src => <img src={`https://gw.alipayobjects.com/zos/rmsportal/${src
                                     display: 'flex',
                                     alignItems: 'center',
                                 }}
+
+                                     className="ios8flex"
                                 >
-                                    <Icon type="ellipsis" />
+                                    <Icon size="md" type="ellipsis" />
                                 </div>
                             </Popover>
                         }

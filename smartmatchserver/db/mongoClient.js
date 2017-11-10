@@ -19,7 +19,9 @@ exports.getDb = function(){
 
 var TABLES = {
     SmsCode:'T_SmsCode', //短信验证码表
-    Users:'T_Users'      //用户基本信息表
+    Users:'T_Users',      //用户基本信息表
+    FaceInfos:'T_FaceInfos', //脸部登录表
+    CityFaceSets:'T_CityFaceSets', //城市脸部集合表
 }
 
 exports.TABLES = TABLES;
@@ -43,6 +45,32 @@ exports.TableDocument = function(tablename){
             birthday:null,
             weight:null,
             height:null,
+            createtime:Date.now()
+        }
+        return doc;
+    }else if(tablename == TABLES.FaceInfos){
+        var doc = {
+            face_token:"",
+            faceset_token:"",
+            image_url:"",
+            phonenumber:"",
+            nickname:"",
+            cityname:"",
+            face_rectangle:{},
+            landmark:{},
+            attributes:{},
+            createtime:Date.now()
+        }
+        return doc;
+    }else if(tablename == TABLES.CityFaceSets){
+        /*
+        * var subdoc = {
+            faceset_token:"",
+            facecount:0,
+        }*/
+        var doc = {
+            cityname:"",
+            facesets:[],
         }
         return doc;
     }

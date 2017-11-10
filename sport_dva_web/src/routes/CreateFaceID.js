@@ -73,7 +73,9 @@ export default class App extends React.Component{
         this.state = {
             fileSize : 0,
             imageSrc:"http://k2.jsqq.net/uploads/allimg/1706/7_170629152344_5.jpg",
-            pickfiles : []
+            pickfiles : [],
+            valueName : "",
+            cityName: "未知"
         }
         this.readFileResult = null;
         this.uploadFileResult = null;
@@ -81,7 +83,7 @@ export default class App extends React.Component{
     }
 
     componentDidMount(){
-
+        this.getLocalCity();
     }
 
     componentWillMount(){
@@ -179,13 +181,12 @@ export default class App extends React.Component{
             return;
         }
         var body = {
-            api_key:"-xm4B_VVb9yNX1W3YDYq01QuEt7ilJ6j",
-            api_secret:"WNsW3PM5e7AQizRkYg2v2k3q0nArBtao",
-            //image_url:"http://k2.jsqq.net/uploads/allimg/1706/7_170629152344_5.jpg",
-            image_base64:this.uploadFileResult
+            image_base64:this.uploadFileResult,
+            cityName:this.state.cityName
         }
         Toast.loading("脸部识别中...")
-        var result = await request("/facedetect",{
+        //检测是否已经录入
+        var result = await request("/facelogin",{
             method:'POST',
             headers: {
                 //'Content-Type': 'application/x-www-form-urlencoded'
@@ -193,14 +194,35 @@ export default class App extends React.Component{
             },
             body: JSON.stringify(body) //`api_key=${body.api_key}&api_secret=${body.api_secret}&image_base64=${body.image_base64}`
         })
-        var json = JSON.parse(result.data);
-        console.log(json);
-        if(json.error_message){
-            Toast.info("产生错误："+json.error_message);
+        if(result.data.result.error_message){
+            Toast.info(result.data.result.error_message);
+            return;
+        }
+        var confidence = result.data.result.results[0].confidence;
+        console.log("confidence:"+confidence);
+        var thresholds = result.data.result.thresholds;
+        console.log("thresholds:"+thresholds["1e-4"])
+        if(confidence > thresholds["1e-4"]){
+            Toast.info("该用户已经创建Face ID，请登录")
+            return;
         }else{
-            if(json.faces.length > 0){
-                Toast.info("识别成功")
-                /*Toast.info("开始绘制canvas")
+            Toast.info("没有存在，可以创建")
+        }
+        //创建Face ID
+        var result = await request("/CreateFaceID",{
+            method:'POST',
+            headers: {
+                //'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body) //`api_key=${body.api_key}&api_secret=${body.api_secret}&image_base64=${body.image_base64}`
+        })
+        console.log(result);
+        if(result.data.error){
+            Toast.info("产生错误："+result.data.error);
+        }else{
+            Toast.info("识别成功")
+            /*Toast.info("开始绘制canvas")
                 //绘制脸部方框
                 var offscreenCanvas = document.createElement('canvas');
                 var offscreenContext = offscreenCanvas.getContext('2d');
@@ -219,12 +241,26 @@ export default class App extends React.Component{
                     this.setState({imageSrc:offscreenCanvas.toDataURL()})
                     Toast.hide();
                 }*/
-            }else {
-                //Toast.hide();
-                Toast.info("没有识别出人脸")
-            }
+
         }
 
+    }
+
+    randomName = async ()=>{
+        var result = await request("/getRandomName");
+        console.log(result.data)
+        this.setState({valueName:result.data.name});
+    }
+
+    getLocalCity = ()=>{
+        var self = this;
+        function myFun(result){
+            var cityName = result.name;
+            //Toast.info(cityName);
+            self.setState({cityName});
+        }
+        var myCity = new BMap.LocalCity();
+        myCity.get(myFun);
     }
 
     render(){
@@ -273,10 +309,11 @@ export default class App extends React.Component{
                             <div>
                                 <InputItem
                                     placeholder="输入昵称"
+                                    value={this.state.valueName}
                                 ></InputItem>
                             </div>
                             <div>
-                                <Button type="primary" size="small" style={{width:100,marginRight:30}}>随机昵称</Button>
+                                <Button onClick={this.randomName} type="primary" size="small" style={{width:100,marginRight:30}}>随机昵称</Button>
                             </div>
                         </Flex>
 

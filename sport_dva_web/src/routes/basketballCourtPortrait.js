@@ -189,7 +189,27 @@ export default class App extends React.Component{
         freethrow_y = opt.screenY((PITCH_HALF_LENGTH-PAINT_ZONE_HEIGHT))
         drawHalfCircle(ctx,freethrow_x,freethrow_y,freethrow_r,true);
 
+        document.documentElement.addEventListener('touchstart',this.touchstart);
+        document.documentElement.addEventListener('touchmove',this.touchmove)
+        document.documentElement.addEventListener('touchend',this.touchend)
+    }
 
+    touchstart = (e)=>{
+        e.preventDefault();
+    }
+
+    touchmove = (e)=>{
+        e.preventDefault();
+    }
+
+    touchend = (e)=>{
+        e.preventDefault();
+    }
+
+    componentWillUnmount(){
+        document.documentElement.removeEventListener('touchstart',this.touchstart);
+        document.documentElement.removeEventListener('touchmove',this.touchmove);
+        document.documentElement.removeEventListener('touchend',this.touchend);
     }
     render(){
         return (

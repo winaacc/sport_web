@@ -9,6 +9,12 @@ var upload = require('../utils/uploadQiniu')
 var request = require('request')
 var fs = require('fs')
 var signature = require('wx_jsapi_sign')
+var randomword = require('../utils/hanku').randomWord
+var httpclient = require('../utils/httpclient')
+var facesdk = require('../utils/FacePlusPlus')
+
+var api_key = "-xm4B_VVb9yNX1W3YDYq01QuEt7ilJ6j";
+var api_secret = "WNsW3PM5e7AQizRkYg2v2k3q0nArBtao";
 
 module.exports = {
 	init:function(app){
@@ -282,13 +288,11 @@ module.exports = {
                     console.log("保存成功！");
                 }
             });
-
-            //console.log(req.body);
+            //upload.UploadBuffer("grassroot",dataBuffer,"face.jpeg");
             request.post({url:"https://api-cn.faceplusplus.com/facepp/v3/detect",formData:req.body},function(err,httpResponse,body){
-                //console.log(body);
-                //console.log(httpResponse);
-                //console.log(err);
-                res.end(JSON.stringify(body));
+                var r = JSON.parse(body);
+                console.log(r.faces);
+                res.json(body);
             })
         })
 
@@ -312,6 +316,224 @@ module.exports = {
                     res.json(result);
                 }
             });
+        })
+
+        app.get('/getRandomName',function(req,res){
+            var w = randomword();
+            var len = w.length;
+            var r = Math.random();
+            var name = "";
+            name += w[Math.floor(len*r)];
+            r = Math.random();
+            name += w[Math.floor(len*r)];
+            r = Math.random();
+            name += w[Math.floor(len*r)];
+            res.json({name:name})
+        })
+
+
+        app.post('/facelogin',function(req,res){
+            co(function*(){
+                //去掉data:image/png;base64,或data:image/jpeg;base64,
+                if(req.body.image_base64[21] == ','){
+                    req.body.image_base64 = req.body.image_base64.substring(22);
+                }else{
+                    req.body.image_base64 = req.body.image_base64.substring(23);
+                }
+                //使用express接收POST值后，base64编码字符串中的“+”号被替换成空格了，引起编码出错
+                req.body.image_base64 = req.body.image_base64.replace(/\s/g,"+");
+
+                var cityname = req.body.cityName;
+
+                var CityFaceSets = yield mongoClient.find(mongoClient.TABLES.CityFaceSets,{cityname:cityname});
+                if(CityFaceSets.length == 0){
+                    res.json({error:"没有人脸可以比对"})
+                    return;
+                }
+                console.log(CityFaceSets);
+                var faceset_token = CityFaceSets[0].facesets[0].faceset_token;
+
+                var result = yield facesdk.faceLogin(req.body.image_base64,faceset_token);
+                res.json({error:null,result:result});
+            })
+        })
+
+        app.post('/CreateFaceID',function(req,res){
+            //去掉data:image/png;base64,或data:image/jpeg;base64,
+            if(req.body.image_base64[21] == ','){
+                req.body.image_base64 = req.body.image_base64.substring(22);
+            }else{
+                req.body.image_base64 = req.body.image_base64.substring(23);
+            }
+            //使用express接收POST值后，base64编码字符串中的“+”号被替换成空格了，引起编码出错
+            req.body.image_base64 = req.body.image_base64.replace(/\s/g,"+");
+
+            var dataBuffer = new Buffer(req.body.image_base64, 'base64');
+            //上传七牛云
+
+            co(function*(){
+                var formdata = {
+                    api_key:api_key,
+                    api_secret:api_secret,
+                    image_base64:req.body.image_base64,
+                    return_landmark:2,
+                    return_attributes:"gender,age,smiling,headpose,facequality,blur,eyestatus,emotion,ethnicity,beauty,mouthstatus,eyegaze,skinstatus"
+                }
+                var body = yield facesdk.faceDetect(formdata);
+                console.log(body.faces)
+                if(body.error_message){
+                    res.json({error:"/facepp/v3/detect:"+body.error_message});
+                    return;
+                }else{
+                    if(body.faces.length == 0){
+                        res.json({error:"照片没有人脸"});
+                        return;
+                    }else if(body.faces.length > 1){
+                        res.json({error:"识别出的人脸过多，只能有一个"});
+                        return;
+                    }else{
+                        //res.json({error:null,result:body});
+                        //return;
+                        var Face_token = body.faces[0].face_token;
+                        //查询数据库，找到合适的faceset_token,如果没有则创建一个
+                        var cityname = req.body.cityName;
+                        console.log("cityName:"+cityname);
+                        var CityFaceSets_docs = yield mongoClient.find(mongoClient.TABLES.CityFaceSets,{cityname:cityname});
+                        console.log(CityFaceSets_docs);
+                        var FaceSet_token = "";
+                        if(CityFaceSets_docs.length == 0){
+                            //创建FaceSet集合
+                            var createFaceset_result = yield facesdk.createCityFaceSets(cityname);
+                            if(createFaceset_result.error){
+                                res.json({error:createFaceset_result.error});
+                                return;
+                            }else{
+                                FaceSet_token = createFaceset_result.result;
+                            }
+                        }else{
+                            //找到第一个没有满的Face Set
+                            var arr = CityFaceSets_docs[0].facesets;
+                            for(var i=0;i<arr.length;i++){
+                                if(arr[i].facecount < 10000){
+                                    FaceSet_token = arr[i].faceset_token;
+                                    break;
+                                }
+                            }
+                            if(FaceSet_token == ""){
+                                //所以的Face Set都满了，需要创建一个
+                                var createFaceset_result = yield facesdk.createFaceSet(cityname);
+                                if(createFaceset_result.error){
+                                    res.json({error:createFaceset_result.error});
+                                    return;
+                                }else{
+                                    FaceSet_token = createFaceset_result.result;
+                                }
+                            }
+                        }
+
+                        //把检测到人脸加入到Face Set中，然后更新数据库
+                        var AddFace_result = yield facesdk.addFace(FaceSet_token,Face_token);
+                        if(AddFace_result.face_added == 1){
+                            //添加成功
+                            //上传到七牛云
+                            var bucket = "grassroot";
+                            var domain = "http://grassroot.qiniudn.com/"
+                            var filename = Face_token+".jpeg";
+                            var qiniu_upload_result = yield upload.UploadBuffer(bucket,dataBuffer,filename);
+                            console.log("qiniu_upload_result:"+JSON.stringify(qiniu_upload_result));
+                            //更新CityFaceSets表
+                            var CityFaceSets_docs = yield mongoClient.find(mongoClient.TABLES.CityFaceSets,{cityname:cityname});
+                            var arr = CityFaceSets_docs[0].facesets;
+                            for(var i=0;i<arr.length;i++){
+                                if(arr[i].faceset_token == FaceSet_token){
+                                    arr[i].facecount++;
+                                    break;
+                                }
+                            }
+                            var result = yield mongoClient.updateOne(mongoClient.TABLES.CityFaceSets,{cityname:cityname},{$set:{facesets:CityFaceSets_docs[0].facesets}})
+
+                            //新增FaceInfos
+                            var faceinfo = mongoClient.TableDocument(mongoClient.TABLES.FaceInfos);
+                            faceinfo.face_token = Face_token;
+                            faceinfo.faceset_token = FaceSet_token;
+                            faceinfo.image_url = domain+filename;
+                            faceinfo.cityname = cityname;
+                            faceinfo.face_rectangle = body.faces[0].face_rectangle;
+                            faceinfo.landmark = body.faces[0].landmark;
+                            faceinfo.attributes = body.faces[0].attributes;
+                            yield mongoClient.insert(mongoClient.TABLES.FaceInfos,faceinfo);
+
+                            //查询新增内容
+                            var f = yield mongoClient.find(mongoClient.TABLES.FaceInfos,{face_token:Face_token})
+                            var c = yield mongoClient.find(mongoClient.TABLES.CityFaceSets,{});
+                            res.json({error:null,faceinfo:f,CityFaceSet:c});
+                        }else{
+                            if(AddFace_result.error_message){
+                                res.json({error:"addFace:"+AddFace_result.error_message});
+                                return;
+                            }else{
+                                res.json({error:JSON.stringify(AddFace_result.failure_detail)});
+                                return;
+                            }
+                        }
+
+                    }
+                }
+
+            })
+
+        })
+
+        app.post('/getFaceInfo',function(req,res){
+            co(function*(){
+                var face_token = req.body.face_token;
+                var faceinfo = yield mongoClient.find(mongoClient.TABLES.FaceInfos,{face_token:face_token});
+                console.log(faceinfo);
+                res.json({image_url:faceinfo[0].image_url})
+            })
+        })
+
+        app.post('/getAllFaceUsers',function (req,res) {
+            var cityname = req.body.cityName;
+            co(function* () {
+                var users = yield mongoClient.find(mongoClient.TABLES.FaceInfos,{cityname:cityname});
+                console.log(users);
+                res.json(users);
+            })
+        })
+
+        app.post('/removeFace',function (req,res) {
+            var face_token = req.body.face_token;
+            co(function* () {
+                //判断face_token是否有效
+                var faceinfo_arr = yield mongoClient.find(mongoClient.TABLES.FaceInfos,{face_token:face_token});
+                if(faceinfo_arr.length == 0){
+                    res.json({error:"face_token无效"})
+                    return;
+                }
+                var faceset_token = faceinfo_arr[0].faceset_token;
+                var cityname = faceinfo_arr[0].cityname;
+
+                //从face++删除指定的人脸
+                var web_result = yield facesdk.faceRemove(faceset_token,face_token);
+                if(web_result.error){
+                    res.json({error:web_result.error})
+                    return;
+                }
+                //更新CityFaceSets中对应城市的人脸的数量
+                var CityFaceSets_docs = yield mongoClient.find(mongoClient.TABLES.CityFaceSets,{cityname:cityname});
+                var arr = CityFaceSets_docs[0].facesets;
+                for(var i=0;i<arr.length;i++){
+                    if(arr[i].faceset_token == faceset_token){
+                        arr[i].facecount--;
+                        break;
+                    }
+                }
+                var result = yield mongoClient.updateOne(mongoClient.TABLES.CityFaceSets,{cityname:cityname},{$set:{facesets:CityFaceSets_docs[0].facesets}})
+                //删除人脸信息
+                var result = yield mongoClient.deleteOne(mongoClient.TABLES.FaceInfos,{face_token:face_token})
+                res.json({error:null})
+            })
         })
 	}
 }
