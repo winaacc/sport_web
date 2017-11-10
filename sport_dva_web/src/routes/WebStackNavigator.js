@@ -137,6 +137,10 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
                      alert(result);
                  }
              });
+         }else if(opt.props.value == "share_url"){
+             this.navigate("ShareUrlQrcode")
+         }else if(opt.props.value == "share_gongzhong"){
+             this.navigate("ShareGongzhongQrcode")
          }
      };
      handleVisibleChange = (visible) => {
@@ -187,6 +191,12 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
                                          (<Popover.Item key="6" value="button ct" icon={myImg('uQIYTFeRrjPELImDRrPt')}>
                                              <span style={{ marginRight: 5 }}>Help</span>
                                          </Popover.Item>),
+                                         (<Popover.Item key="7" value="share_url">
+                                             <span style={{ marginRight: 5 }}>分享网址</span>
+                                         </Popover.Item>),
+                                         (<Popover.Item key="8" value="share_gongzhong">
+                                             <span style={{ marginRight: 5 }}>关注公众号</span>
+                                         </Popover.Item>)
                                      ]}
                                      align={{
                                          overflow: { adjustY: 0, adjustX: 0 },

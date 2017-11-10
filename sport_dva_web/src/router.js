@@ -15,6 +15,8 @@ import LotteryTurntable from './routes/LotteryTurntable'
 import FaceIDLogin from './routes/FaceIDLogin'
 import FaceUsers from './routes/FaceUsers'
 import SelfPersonPage from './routes/SelfPersonPage'
+import ShareUrlQrcode from './routes/ShareUrlQrcode'
+import  ShareGongzhongQrcode from './routes/ShareGongzhongQrcode'
 import {
     Button,
     Toast,
@@ -90,6 +92,8 @@ var pages = {
     FaceIDLogin:{screen:FaceIDLogin},
     FaceUsers:{screen:FaceUsers},
     SelfPersonPage:{screen:SelfPersonPage},
+    ShareUrlQrcode:{screen:ShareUrlQrcode},
+    ShareGongzhongQrcode:{screen:ShareGongzhongQrcode},
 }
 
 var Main = (params)=>{
