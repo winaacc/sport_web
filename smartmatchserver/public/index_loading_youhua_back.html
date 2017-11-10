@@ -187,70 +187,77 @@
     </div>
   </div>
 </div>
-</body>
-</html>
-<link href="./src/lib/6.4.0/video-js.min.css" rel="stylesheet">
-<link href="./src/lib/formdata.css" rel="stylesheet">
-<link rel="stylesheet" href="index.css" />
 <script src="./src/lib/1.0.6/fastclick.js"></script>
 <script>
     if ('addEventListener' in document) {
         document.addEventListener('DOMContentLoaded', function() {
-            FastClick.attach(document.body);
+            //FastClick.attach(document.body);
         }, false);
     }
     if(!window.Promise) {
         document.writeln('<script src="./src/lib/3.2.2/es6-promise.min.js"'+'>'+'<'+'/'+'script>');
     }
 </script>
-<script type="text/javascript" src="./src/lib/6.4.0/video.min.js"></script>
-<script type="text/javascript" src="./src/lib/5.12.1/videojs-contrib-hls.min.js"></script>
-<script type="text/javascript" src="./src/lib/exif.js"></script>
-<script type="text/javascript" src="./src/lib/jquery-3.2.1.min.js"></script>
-<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ONLv8ZVG94yKZBPeb7NLOzQ4ZgGuzhUK"></script>
-<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
-<script type="text/javascript" src="./src/lib/react.min.js"></script>
-<script type="text/javascript" src="./src/lib/react-dom.min.js"></script>
-<script src="index.js"></script>
+
+</body>
+
+</html>
 <script>
-    function is_weixin(){
-        var ua = navigator.userAgent.toLowerCase();
-        if(ua.match(/MicroMessenger/i)=="micromessenger") {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    if(is_weixin()){
-        console.log("wechat browser")
-        $.getJSON('/getwechatsignature?url=' + encodeURIComponent(location.href.split('#')[0]), function (res) {
-            wx.config({
-                beta: true,
-                debug: false,
-                appId: res.appId,
-                timestamp: res.timestamp,
-                nonceStr: res.nonceStr,
-                signature: res.signature,
-                jsApiList: [
-                    "scanQRCode",
-                    "openLocation",
-                    "getLocation"
-                ]
-            });
-            wx.ready(function () {
-                wx.checkJsApi({
-                    jsApiList: ['scanQRCode',"openLocation",
-                        "getLocation"], // 需要检测的JS接口列表，所有JS接口列表见附录2,
-                    success: function(res) {
-                        console.log(res);
+    function loadScript(url, callback) {
+        var script = document.createElement("script");
+        console.log(script);
+        script.type = "text/javascript";
+        if(typeof(callback) != "undefined"){
+            if (script.readyState) {
+                script.onreadystatechange = function () {
+                    if (script.readyState == "loaded" || script.readyState == "complete") {
+                        script.onreadystatechange = null;
+                        callback();
                     }
-                });
-            });
-            wx.error(function(res){
-                console.log(res);
-            })
-        });
+                };
+            } else {
+                script.onload = function () {
+                    callback();
+                };
+            }
+        }
+        script.src = url;
+        console.log(document);
+        document.body.appendChild(script);
     }
+
+    document.writeln('<link href="./src/lib/6.4.0/video-js.min.css" rel="stylesheet">');
+    document.writeln('<link href="./src/lib/formdata.css" rel="stylesheet">');
+    document.writeln('<link rel="stylesheet" href="index.css">');
+
+    loadScript("./src/lib/6.4.0/video.min.js",function(){
+        loadScript("./src/lib/5.12.1/videojs-contrib-hls.min.js",function(){
+            loadScript("./src/lib/exif.js",function () {
+                loadScript("./src/lib/jquery-3.2.1.min.js",function () {
+                    loadScript("http://api.map.baidu.com/api?v=2.0&ak=ONLv8ZVG94yKZBPeb7NLOzQ4ZgGuzhUK",function () {
+                        loadScript("https://res.wx.qq.com/open/js/jweixin-1.0.0.js",function () {
+                            loadScript("./src/lib/react.min.js",function () {
+                                loadScript("./src/lib/react-dom.min.js",function () {
+                                    loadScript("index.js",function () {
+                                        alert("loaded")
+                                    })
+                                })
+                            })
+                        })
+                    })
+                })
+            })
+        })
+    })
+
+    /*document.writeln('<script src="./src/lib/6.4.0/video.min.js"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="./src/lib/5.12.1/videojs-contrib-hls.min.js"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="./src/lib/exif.js"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="./src/lib/jquery-3.2.1.min.js"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="http://api.map.baidu.com/api?v=2.0&ak=ONLv8ZVG94yKZBPeb7NLOzQ4ZgGuzhUK"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="./src/lib/react.min.js"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="./src/lib/react-dom.min.js"'+'>'+'<'+'/'+'script>');
+    document.writeln('<script src="index.js"'+'>'+'<'+'/'+'script>');*/
 
 </script>
-
