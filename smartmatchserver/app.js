@@ -8,7 +8,9 @@ var winaa = require("./db/winaa");
 var localdb = require("./db/winaa").localdb;
 var dbvue = require("./db/winaa").dbvue;
 var router = require("./src/router")
+var comression = require('compression');
 
+app.use(comression());
 app.use(express.static('public'));
 app.use(bodyParser.json({limit:'50mb'})); // for parsing application/json
 app.use(bodyParser.urlencoded({ limit:'50mb',extended: true })); // for parsing application/x-www-form-urlencoded

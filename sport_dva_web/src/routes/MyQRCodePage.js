@@ -15,7 +15,7 @@ export default class App extends React.Component{
         }
     }
     componentDidMount(){
-        QRCode.toDataURL("web:1e7797e9ee2ae509c9287466b045fbf5",(err,url) => {
+        QRCode.toDataURL("faceid:1e7797e9ee2ae509c9287466b045fbf5",(err,url) => {
             this.setState({qrcodeSrc:url});
         })
     }

@@ -215,7 +215,7 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
 
                                      className="ios8flex"
                                 >
-                                    <Icon size="md" type="ellipsis" />
+                                    <CustomIcon size="md" type={require('../assets/plus.svg')} />
                                 </div>
                             </Popover>
                         }

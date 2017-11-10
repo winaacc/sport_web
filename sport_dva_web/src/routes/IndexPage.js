@@ -71,10 +71,10 @@ class IndexPage extends Component{
     render(){
         return (
                 <div className={styles.normal}>
+                    <NoticeBar mode="link" action={<span>点击查看</span>}>
+                        最新消息
+                    </NoticeBar>
                     <div id="tabContainer" style={{height:this.state.tabContainerHeight}}>
-                        <NoticeBar mode="link" action={<span>点击查看</span>}>
-                            最新消息
-                        </NoticeBar>
                     <Tabs tabs={tabs}
                           initalPage={'t2'}
                     >
