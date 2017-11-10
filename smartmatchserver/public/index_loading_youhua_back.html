@@ -191,7 +191,7 @@
 <script>
     if ('addEventListener' in document) {
         document.addEventListener('DOMContentLoaded', function() {
-            //FastClick.attach(document.body);
+            FastClick.attach(document.body);
         }, false);
     }
     if(!window.Promise) {
@@ -239,7 +239,9 @@
                             loadScript("./src/lib/react.min.js",function () {
                                 loadScript("./src/lib/react-dom.min.js",function () {
                                     loadScript("index.js",function () {
-                                        //alert("loaded")
+                                        loadScript("./src/lib/wechatinit.js",function () {
+                                            console.log("script loaded")
+                                        })
                                     })
                                 })
                             })
