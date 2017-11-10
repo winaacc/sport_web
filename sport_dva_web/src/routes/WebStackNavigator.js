@@ -64,6 +64,9 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
 
     componentDidMount(){
         console.log(`WebStackNavigator:${this.props.path}`)
+        //删除loading节点
+        var apploading = document.getElementById("AppLoading");
+        apploading.parentNode.removeChild(apploading);
         if(this.props.path){
             if(this.props.Pages[this.props.path]){
                 this.navigate(this.props.path);
