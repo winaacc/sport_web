@@ -4,7 +4,8 @@ import {
     Flex,
     List,
     Button,
-    WhiteSpace
+    WhiteSpace,
+    Toast
 } from 'antd-mobile'
 
 export default class App extends React.Component{
@@ -14,6 +15,12 @@ export default class App extends React.Component{
     constructor(props){
         super(props);
     }
+
+    componentDidMount(){
+        var params = this.props.navigation.params;
+        Toast.info(JSON.stringify(params));
+    }
+
     render(){
         return (
             <div>
