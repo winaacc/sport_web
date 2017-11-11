@@ -55,11 +55,11 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
             stack:[],
             navigation:{
                 routeName:"",
+                navParams:{},
             },
             visible: false,
             selected: '',
         }
-        this.navParams = {};
     }
 
     componentDidMount(){
@@ -102,11 +102,11 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
         stack.push(routeName);
         var navigation = this.state.navigation;
         navigation.routeName = routeName;
+        if(params){
+            navigation.navParams = params;
+        }
         this.setState({stack});
         this.setState({navigation});
-        if(params){
-            this.navParams = params;
-        }
         console.log(this.state);
         localStorage.setItem("navigation",JSON.stringify(this.state));
 
@@ -116,7 +116,6 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
         if(this.state.stack.length == 0){
             return;
         }
-        this.navParams = {};
         var stack = this.state.stack;
         stack.pop();
         this.setState({stack});
@@ -167,7 +166,7 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
         //设置导航信息
         var navigation = {};
         navigation.routeName = this.state.navigation.routeName;
-        navigation.params = this.navParams;
+        navigation.params = this.state.navigation.navParams;
         navigation.navigate = this.navigate;
         navigation.goBack = this.goBack;
         //设置首页

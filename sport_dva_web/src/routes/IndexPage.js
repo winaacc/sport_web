@@ -147,6 +147,7 @@ class IndexPage extends Component{
                             <Button onClick={()=>{this.props.navigation.navigate("BaiduMap")}}>百度地图</Button>
                             <Button onClick={()=>{this.props.navigation.navigate("LotteryTurntable")}}>抽奖转盘</Button>
                             <Button onClick={()=>{this.props.navigation.navigate("FaceIDLogin")}}>人脸登录</Button>
+                            <Button onClick={()=>{this.props.navigation.navigate("OtherPersonPage",{data:"faceid"})}}>他人主页</Button>
                         </div>
                         <div style={{height: this.state.tabHeight, backgroundColor: '#ccc' }}>
                             <WingBlank>
