@@ -132,6 +132,7 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
          if(opt.props.value == "Qrcode"){
              this.navigate("MyQRCodePage")
          }else if(opt.props.value == "scan"){
+             var self = this;
              if(is_weixin()){
                  wx.scanQRCode({
                      needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
@@ -139,7 +140,7 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
                      success: function (res) {
                          var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
                          console.log(result);
-                         this.navigate("OtherPersonPage")
+                         self.navigate("OtherPersonPage")
                      }
                  });
              }else{
