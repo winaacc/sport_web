@@ -2,6 +2,7 @@ import './index.html';
 import './index.css';
 import dva from 'dva';
 import CountModel from './models/CountModel'
+import FaceInfoModel from './models/FaceInfoModel'
 // 1. Initialize
 const app = dva();
 
@@ -11,6 +12,7 @@ const app = dva();
 // 3. Model
 //app.model(require('./models/example'));
 app.model(CountModel);
+app.model(FaceInfoModel);
 
 // 4. Router
 app.router(require('./router'));

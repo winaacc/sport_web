@@ -489,7 +489,7 @@ module.exports = {
                 var face_token = req.body.face_token;
                 var faceinfo = yield mongoClient.find(mongoClient.TABLES.FaceInfos,{face_token:face_token});
                 console.log(faceinfo);
-                res.json({image_url:faceinfo[0].image_url})
+                res.json(faceinfo[0])
             })
         })
 

@@ -1,9 +1,12 @@
 import React from 'react'
+import {connect} from 'dva'
 import QRCode from 'qrcode'
 import {
-    Flex
+    Flex,
+    Button
 } from 'antd-mobile'
 
+@connect(({faceinfo}) => ({faceinfo}))
 export default class App extends React.Component{
     static navConfig = {
         title:"我的二维码",
@@ -15,7 +18,8 @@ export default class App extends React.Component{
         }
     }
     componentDidMount(){
-        QRCode.toDataURL("faceid:1e7797e9ee2ae509c9287466b045fbf5",(err,url) => {
+        var data = "faceid:"+this.props.faceinfo.face_token;
+        QRCode.toDataURL(data,(err,url) => {
             this.setState({qrcodeSrc:url});
         })
     }
@@ -23,10 +27,13 @@ export default class App extends React.Component{
         return (
             <Flex justify="center">
             <div style={{position:'relative',marginTop:100}}>
+                {this.props.faceinfo.face_token?<div>
                 <img src={this.state.qrcodeSrc} width="300" />
-                <img src="https://gss1.bdstatic.com/9vo3dSag_xI4khGkpoWK1HF6hhy/baike/w%3D268%3Bg%3D0/sign=528d74efde62853592e0d527a8d411fb/8718367adab44aede7aeb0f9b81c8701a08bfbcf.jpg"
+                <img src={this.props.faceinfo.image_url}
                      width={50} height={50}
-                     style={{position:'absolute', top:125,left:125,borderRadius:10,border:"3px solid white"}} /></div>
+                     style={{position:'absolute', top:125,left:125,borderRadius:10,border:"3px solid white"}} />
+                </div>:<div><div>登录后才能显示二维码</div><Button onClick={()=>{this.props.navigation.navigate("FaceIDLogin")}} size="small">登录</Button></div>}
+            </div>
             </Flex>
         )
     }

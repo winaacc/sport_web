@@ -46,6 +46,7 @@ module.exports = function(webpackConfig, env) {
 
   // 引入 babel-plugin-import
   webpackConfig.babel.plugins.push(['import', { libraryName: 'antd-mobile', style: true }]);
+  webpackConfig.babel.plugins.push(['transform-decorators-legacy'])
   // 引入高清方案
   /*webpackConfig.postcss.push(pxtorem({
     rootValue: 100,

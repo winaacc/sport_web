@@ -17,6 +17,7 @@ import FaceUsers from './routes/FaceUsers'
 import SelfPersonPage from './routes/SelfPersonPage'
 import ShareUrlQrcode from './routes/ShareUrlQrcode'
 import  ShareGongzhongQrcode from './routes/ShareGongzhongQrcode'
+import OtherPersonPage from './routes/OtherPersonPage'
 import {
     Button,
     Toast,
@@ -94,6 +95,7 @@ var pages = {
     SelfPersonPage:{screen:SelfPersonPage},
     ShareUrlQrcode:{screen:ShareUrlQrcode},
     ShareGongzhongQrcode:{screen:ShareGongzhongQrcode},
+    OtherPersonPage:{screen:OtherPersonPage},
 }
 
 var Main = (params)=>{

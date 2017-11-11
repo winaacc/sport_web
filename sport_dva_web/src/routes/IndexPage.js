@@ -14,8 +14,10 @@ import {
     List,
     Modal,
     Badge,
-    NoticeBar
+    NoticeBar,
+    Flex
 } from 'antd-mobile'
+const operation = Modal.operation;
 const Item = List.Item;
 const Brief = Item.Brief;
 import styles from './IndexPage.css';
@@ -30,6 +32,9 @@ const tabs = [
     { title: '附近' },
 ];
 
+@connect(
+    ({faceinfo}) => ({faceinfo})
+    )
 class IndexPage extends Component{
     static navConfig = {
         title:"首页",
@@ -59,7 +64,6 @@ class IndexPage extends Component{
         var t = document.getElementById("tab_item1");
         const tabHeight = document.documentElement.clientHeight - t.offsetTop;
         this.setState({tabHeight});
-
     }
     showModal = (e)=>{
         e.preventDefault();
@@ -80,25 +84,8 @@ class IndexPage extends Component{
                     >
                         <div id="tab_item1" style={{ height: this.state.tabHeight, backgroundColor: '#eee' }}>
                             <WingBlank size="lg">
-                                <WhiteSpace size="lg" />
-                                <Modal
-                                    visible={this.state.modelVisible}
-                                    transparent={true}
-                                    maskClosable={true}
-                                    onClose={this.onClose}
-                                    title="Title"
-                                    footer={[{ text: 'Ok', onPress: () => { console.log('ok'); this.onClose(); } }]}
-                                >
-                                    <div style={{ height: 100, overflow: 'scroll' }}>
-                                        scoll content...<br />
-                                        scoll content...<br />
-                                        scoll content...<br />
-                                        scoll content...<br />
-                                        scoll content...<br />
-                                        scoll content...<br />
-                                    </div>
-                                </Modal>
-                                <List>
+                                <WhiteSpace size="xs" />
+                                {this.props.faceinfo.face_token?<List>
                                     <List.Item
                                         thumb=""
                                         extra={<Badge text={2} overflowCount={99} />}
@@ -107,22 +94,41 @@ class IndexPage extends Component{
                                     >
                                         个人主页
                                     </List.Item>
-                                </List>
-                                <WhiteSpace/>
+                                </List>:<Button onClick={
+                                    ()=>{this.props.navigation.navigate("FaceIDLogin")}
+                                }>登录</Button>}
+                                <WhiteSpace size="xs"/>
                                 <Card>
                                     <Card.Header
                                         title="你的比赛"
                                         thumb={require("../assets/1.png")}
-                                        extra={<Button onClick={this.showModal} type="primary" size="small" inline>创建比赛</Button>}
+                                        extra={<Button onClick={() => operation([
+                                            { text: '野球赛', onPress: () => console.log('标为未读被点击了') },
+                                            { text: '热身赛', onPress: () => console.log('置顶聊天被点击了') },
+                                            { text: '技巧赛', onPress: () => console.log('置顶聊天被点击了') },
+                                            { text: '1VS1挑战赛', onPress: () => console.log('置顶聊天被点击了') },
+                                        ])} type="primary" size="small" inline>创建比赛</Button>}
                                     />
                                     <Card.Body>
                                         <SearchBar onSubmit={(val)=>{Toast.info(val)}} placeholder="比赛，用户，球队ID或名称" maxLength={8} />
-                                        <List renderHeader={() => ''}>
-                                            <List.Item extra="预约" arrow="horizontal" onClick={() => {}}>投篮比赛</List.Item>
-                                            <List.Item arrow="horizontal" onClick={() => {}} thumb="https://zos.alipayobjects.com/rmsportal/dNuvNrtqUztHCwM.png" multipleLine>
-                                                总决赛
-                                            </List.Item>
-                                        </List>
+                                        <Flex style={{height:100,borderBottom:'1px solid #ccc',paddingBottom:10}}>
+                                            <Flex.Item style={{textAlign:'center'}}>
+                                                <img src={require("../assets/teamlogo/Blazers.png")} />
+                                                <div>开拓者</div>
+                                            </Flex.Item>
+                                            <Flex.Item style={{textAlign:'center',height:100}}>
+                                                <Flex direction="column" justify="center" style={{height:100}}>
+                                                    <div style={{marginBottom:5,fontSize:22,fontWeight:"bold"}}>20 - 10</div>
+                                                    <div style={{marginBottom:10,fontSize:12}}>第一节</div>
+                                                    <Button onClick={this.showModal} type="primary" size="small" inline>进行中</Button>
+                                                </Flex>
+
+                                            </Flex.Item>
+                                            <Flex.Item style={{textAlign:'center'}}>
+                                                <img src={require("../assets/teamlogo/net.png")} />
+                                                <div>篮网</div>
+                                            </Flex.Item>
+                                        </Flex>
                                     </Card.Body>
                                     <Card.Footer content="" extra={<div>更多</div>} />
                                 </Card>

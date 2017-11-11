@@ -132,14 +132,20 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
          if(opt.props.value == "Qrcode"){
              this.navigate("MyQRCodePage")
          }else if(opt.props.value == "scan"){
-             wx.scanQRCode({
-                 needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
-                 scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
-                 success: function (res) {
-                     var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
-                     alert(result);
-                 }
-             });
+             if(is_weixin()){
+                 wx.scanQRCode({
+                     needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                     scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                     success: function (res) {
+                         var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                         console.log(result);
+                         this.navigate("OtherPersonPage")
+                     }
+                 });
+             }else{
+                 Toast.info("只有微信浏览器可以使用")
+             }
+
          }else if(opt.props.value == "share_url"){
              this.navigate("ShareUrlQrcode")
          }else if(opt.props.value == "share_gongzhong"){
@@ -163,16 +169,23 @@ const CustomIcon = ({ type, className = '', size = 'md', ...restProps }) => (
         var IndexPage = this.props.Pages['index'].screen;
         var items = this.state.stack.map(function(item,index){
             var Page = self.props.Pages[item].screen;
+            //判断是否需要显示标准导航栏
+            var notitle = false;
+            if(Page.navConfig){
+                if(Page.navConfig.notitle){
+                    notitle = true;
+                }
+            }
+
             return <div key={index} style={styles.subpage}>
-                <NavBar
+                {notitle?null:<NavBar
                     mode="dark"
                     leftContent="Back"
                     onLeftClick={self.goBack}
                     rightContent={[
-                        <Icon key="0" type="search" style={{ marginRight: '16px' }} />,
                         <Icon key="1" type="ellipsis" />,
                     ]}
-                >{Page.navConfig?Page.navConfig.title?Page.navConfig.title:"":""}</NavBar>
+                >{Page.navConfig?Page.navConfig.title?Page.navConfig.title:"":""}</NavBar>}
                 <Page navigation={navigation} />
             </div>
         })

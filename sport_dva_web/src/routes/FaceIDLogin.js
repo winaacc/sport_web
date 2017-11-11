@@ -1,11 +1,14 @@
 import React from 'react'
+import {connect} from 'dva'
 import {
     ImagePicker,
     List,
     WhiteSpace,
     Button,
     WingBlank,
-    Toast
+    Toast,
+    NavBar,
+    Icon
 } from 'antd-mobile'
 import request from "../utils/request"
 import browser from '../utils/browser'
@@ -63,7 +66,11 @@ function rotateImg(img, direction,canvas) {
     }
 }
 
+@connect()
 export default class App extends React.Component{
+    static navConfig = {
+        notitle:true
+    }
     constructor(props){
         super(props);
         this.state = {
@@ -186,11 +193,22 @@ export default class App extends React.Component{
         console.log(result);
         var url = result.data.image_url;
         this.setState({faceImage:url});
+        this.props.dispatch({type:'faceinfo/login',data:result.data});
 
     }
 
     render(){
-        return (
+        return (<div>
+                <NavBar
+                    mode="dark"
+                    leftContent="Back"
+                    onLeftClick={()=>{this.props.navigation.goBack()}}
+                    rightContent={[
+                        <Button key="0" size="small" onClick={
+                            ()=>{this.props.navigation.navigate("CreateFaceID")}
+                        }>注册</Button>,
+                    ]}
+                >人脸登录</NavBar>
             <WingBlank>
                 <List renderHeader={() => '选择自拍照'}><List.Item><ImagePicker
                     files={this.state.pickfiles}
@@ -204,6 +222,7 @@ export default class App extends React.Component{
                 <Button type="primary" onClick={this.createFaceID}>登录</Button>
                 <img height={100} src={this.state.faceImage} />
             </WingBlank>
+            </div>
             )
     }
 }
