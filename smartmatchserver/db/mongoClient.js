@@ -22,6 +22,10 @@ var TABLES = {
     Users:'T_Users',      //用户基本信息表
     FaceInfos:'T_FaceInfos', //脸部登录表
     CityFaceSets:'T_CityFaceSets', //城市脸部集合表
+    Matches:'T_Matches',           //比赛总表
+    StreetMatches:'T_StreetMatches', //野球比赛表
+    Games:'T_Games',                 //每局比赛信息存储表
+    Rooms:"T_Rooms",                 //每局比赛进行过程信息表
 }
 
 exports.TABLES = TABLES;
@@ -71,6 +75,51 @@ exports.TableDocument = function(tablename){
         var doc = {
             cityname:"",
             facesets:[],
+        }
+        return doc;
+    }else if(tablename == TABLES.Matches){
+        var doc = {
+            match_showid:0, //比赛显示的唯一ID
+            match_uid:null,  //比赛内部唯一ID
+            create_useruid:null, //创建者
+            match_type:null, //比赛类型,野球赛，热身赛，联赛，杯赛，官方比赛
+            match_state:null, //比赛状态
+            sport_type:null, //哪种体育项目
+            city_name:null,  //比赛所在城市
+            createtime:Date.now()
+        }
+        return doc;
+    } else if(tablename == TABLES.StreetMatches){
+        var doc = {
+            match_showid:0, //比赛显示的唯一ID
+            match_uid:null,  //比赛内部唯一ID
+            create_useruid:null, //创建者
+            /*
+            * match_rule = {
+            *   startup_num 首发人数
+            *   howwin  确定输赢的规则，记分还是计时
+            *   sectionnum  每局比赛分几节
+            *   sectiontime 每节比赛的时间
+            *   pointwin    每局比赛，首先达到该分数的球队获胜
+            *   courttype   全场还是半场
+            * }
+            * */
+            match_rule:{},   //比赛规则
+            match_players:[], //比赛总人数
+            match_teams:[],   //根据比赛人数创建的临时球队
+            match_games:[],   //比赛的每局比赛，根据比赛的进行，逐渐增多，初始为空
+            match_result:{},   //比赛结果
+            createtime:Date.now()
+        }
+        return doc;
+    }else if(tablename == TABLES.Games){
+        var doc = {
+
+        }
+        return doc;
+    }else if(tablename == TABLES.Rooms){
+        var doc = {
+
         }
         return doc;
     }
@@ -156,6 +205,7 @@ function indexes(tablename,cb){
 
 exports.indexes = thunkify(indexes);
 
+//获得用户唯一ID
 function getUserUniqueID(cb){
     var db = mongoConnection;
     var collection = db.collection("maxids");
@@ -170,6 +220,38 @@ function getUserUniqueID(cb){
 }
 
 exports.getUserUniqueID = thunkify(getUserUniqueID);
+
+//获得比赛显示唯一ID
+function getMatchShowUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'maxshowmatchid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.maxshowmatchid;
+        id = 100000+id;
+        cb(err,id);
+    })
+}
+
+exports.getMatchShowUniqueID = thunkify(getMatchShowUniqueID);
+
+//获得野球比赛内部唯一ID
+function getStreetMatchInteralID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'maxstreetmatchid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.maxstreetmatchid;
+        id = 100000+id;
+        cb(err,id);
+    })
+}
+
+exports.getStreetMatchInteralID = thunkify(getStreetMatchInteralID)
 
 
 

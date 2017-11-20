@@ -32,7 +32,7 @@ var styles = {
         top: 0,
         left: 0,
         backgroundColor:'#ccc',
-        zIndex:1000,
+        zIndex:999,
     }
 }
 

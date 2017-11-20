@@ -176,11 +176,11 @@ export default class App extends React.Component{
         var confidence = result.data.result.results[0].confidence;
         //Toast.info(confidence);
         var thresholds = result.data.result.thresholds;
-        if(confidence <= thresholds["1e-4"]){
+        if(confidence <= 80 /*thresholds["1e-5"]*/){
             Toast.info("登录失败")
             return;
         }else{
-            Toast.info("登录成功")
+            Toast.info("登录成功",1)
         }
         var face_token = result.data.result.results[0].face_token;
         var result = await request("/getFaceInfo",{
@@ -194,6 +194,7 @@ export default class App extends React.Component{
         var url = result.data.image_url;
         this.setState({faceImage:url});
         this.props.dispatch({type:'faceinfo/login',data:result.data});
+        this.props.navigation.goBack();
 
     }
 

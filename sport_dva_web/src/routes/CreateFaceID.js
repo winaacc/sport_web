@@ -201,8 +201,9 @@ export default class App extends React.Component{
         var confidence = result.data.result.results[0].confidence;
         console.log("confidence:"+confidence);
         var thresholds = result.data.result.thresholds;
-        console.log("thresholds:"+thresholds["1e-4"])
-        if(confidence > thresholds["1e-4"]){
+        console.log(thresholds,thresholds);
+        console.log("thresholds:"+thresholds["1e-5"])
+        if(confidence > 80 /*thresholds["1e-5"]*/){
             Toast.info("该用户已经创建Face ID，请登录")
             return;
         }else{

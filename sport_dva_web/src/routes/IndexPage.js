@@ -26,6 +26,8 @@ import Example from "../components/Example";
 import iScroll from 'iscroll/build/iscroll-probe';
 import WebStackNavigator from "./WebStackNavigator";
 
+import {post} from '../utils/request'
+
 const tabs = [
     { title: '比赛' },
     { title: '球队' },
@@ -64,6 +66,12 @@ class IndexPage extends Component{
         var t = document.getElementById("tab_item1");
         const tabHeight = document.documentElement.clientHeight - t.offsetTop;
         this.setState({tabHeight});
+
+        Modal.alert('登录', '是否绑定手机号', [
+            { text: '取消', onPress: () => console.log('cancel'), style: 'default' },
+            { text: '绑定', onPress: () => {this.props.navigation.navigate("bindcellphone")} },
+        ]);
+
     }
     showModal = (e)=>{
         e.preventDefault();
@@ -87,11 +95,18 @@ class IndexPage extends Component{
                                 <WhiteSpace size="xs" />
                                 {this.props.faceinfo.face_token?<List>
                                     <List.Item
-                                        thumb=""
+                                        style={{height:80}}
                                         extra={<Badge text={2} overflowCount={99} />}
                                         arrow="horizontal"
                                         onClick={() => {this.props.navigation.navigate("SelfPersonPage")}}
                                     >
+                                        <img style={{
+                                            height:50,
+                                            width:40,
+                                            borderRadius:10,
+                                            border:'1px solid #ccc',
+                                            marginRight:10
+                                        }} src={this.props.faceinfo.image_url} />
                                         个人主页
                                     </List.Item>
                                 </List>:<Button onClick={
@@ -103,14 +118,23 @@ class IndexPage extends Component{
                                         title="你的比赛"
                                         thumb={require("../assets/1.png")}
                                         extra={<Button onClick={() => operation([
-                                            { text: '野球赛', onPress: () => console.log('标为未读被点击了') },
+                                            { text: '野球赛', onPress: () => {
+                                                this.props.navigation.navigate("CreateStreetMatch")
+                                            } },
                                             { text: '热身赛', onPress: () => console.log('置顶聊天被点击了') },
                                             { text: '技巧赛', onPress: () => console.log('置顶聊天被点击了') },
                                             { text: '1VS1挑战赛', onPress: () => console.log('置顶聊天被点击了') },
                                         ])} type="primary" size="small" inline>创建比赛</Button>}
                                     />
                                     <Card.Body>
-                                        <SearchBar onSubmit={(val)=>{Toast.info(val)}} placeholder="比赛，用户，球队ID或名称" maxLength={8} />
+                                        <SearchBar onSubmit={async(val)=>{
+                                            var result = await post("/getMatchDetailByShowId",{showid:parseInt(val)})
+                                            if(!result.matchinfo){
+                                                Toast.info("ID无效",1)
+                                                return;
+                                            }
+                                            this.props.navigation.navigate("SearchMatchResult",{data:val})
+                                        }} placeholder="比赛，用户，球队ID或名称" maxLength={8} />
                                         <Flex style={{height:100,borderBottom:'1px solid #ccc',paddingBottom:10}}>
                                             <Flex.Item style={{textAlign:'center'}}>
                                                 <img src={require("../assets/teamlogo/Blazers.png")} />
@@ -147,12 +171,21 @@ class IndexPage extends Component{
                             <Button onClick={()=>{this.props.navigation.navigate("BaiduMap")}}>百度地图</Button>
                             <Button onClick={()=>{this.props.navigation.navigate("LotteryTurntable")}}>抽奖转盘</Button>
                             <Button onClick={()=>{this.props.navigation.navigate("FaceIDLogin")}}>人脸登录</Button>
-                            <Button onClick={()=>{this.props.navigation.navigate("OtherPersonPage",{data:"faceid"})}}>他人主页</Button>
                         </div>
                         <div style={{height: this.state.tabHeight, backgroundColor: '#ccc' }}>
                             <WingBlank>
                                 <WhiteSpace/>
                                 <Button onClick={()=>{this.props.navigation.navigate("FaceUsers")}}>本市所有用户</Button>
+                                <Button onClick={()=>{this.props.navigation.navigate("SocketIOPage")}}>Socket.IO</Button>
+                                <Button onClick={()=>{
+                                    var size = 0;
+                                    for(var item in window.localStorage) {
+                                                 if(window.localStorage.hasOwnProperty(item)) {
+                                                         size += window.localStorage.getItem(item).length;
+                                                     }
+                                             }
+                                    Toast.info('当前localStorage使用量为' + (size / 1024).toFixed(2) + 'KB');
+                                }}>localstorage占用空间</Button>
                             </WingBlank>
                         </div>
                     </Tabs>

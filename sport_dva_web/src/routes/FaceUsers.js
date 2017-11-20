@@ -97,13 +97,13 @@ export default class App extends React.Component{
                             borderBottom: '1px solid #F6F6F6',
                         }}
                     >{rowData.face_token}</div>
-                    <div style={{ display: '-webkit-box', display: 'flex', padding: '15px 0' }}>
-                        <img style={{ height: '64px', marginRight: '15px' }} src={rowData.image_url} alt="" />
+                    <div style={{ display: '-webkit-box', display: 'flex', flexDirection:'column',padding: '15px 0' }}>
+                        <img style={{ width: '64px', marginRight: '15px' }} src={rowData.image_url} alt="" />
                         <div style={{ lineHeight: 1 }}>
                             <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>{rowData.cityname}</div>
                             <div><span style={{ fontSize: '30px', color: '#FF6E27' }}>{rowID}</span>¥</div>
                             <div>{JSON.stringify(rowData.face_rectangle)}</div>
-                            <Button onClick={()=>{this.deleteFace(rowData.face_token)}}>删除</Button>
+                            <Button size="small" onClick={()=>{this.deleteFace(rowData.face_token)}}>删除</Button>
                         </div>
                     </div>
                 </div>

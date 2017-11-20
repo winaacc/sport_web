@@ -17,6 +17,9 @@ export default {
             var data = payload.data;
             delete data._id;
             return {...state,...data}
+        },
+        updatenickname(state,{payload}){
+            return {...state,...payload}
         }
     },
     effects:{

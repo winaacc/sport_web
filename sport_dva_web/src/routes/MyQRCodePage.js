@@ -23,6 +23,15 @@ export default class App extends React.Component{
             this.setState({qrcodeSrc:url});
         })
     }
+
+    componentWillReceiveProps(nextProps){
+        var data = "faceid:"+nextProps.faceinfo.face_token;
+        QRCode.toDataURL(data,(err,url) => {
+            this.setState({qrcodeSrc:url});
+        })
+    }
+
+
     render(){
         return (
             <Flex justify="center">

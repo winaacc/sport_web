@@ -18,8 +18,10 @@ export default class App extends React.Component{
     render(){
         return (
             <div>
-                <Flex justify="center" style={{height:200,backgroundColor:'#00ffcc'}}>
-                    <img src={this.props.faceinfo.image_url} style={{height:100,width:100,border:'3px solid #fff',borderRadius:'50%'}} />
+                <Flex justify="center" direction="column" style={{height:200,backgroundColor:'#00ffcc'}}>
+                    <div><img src={this.props.faceinfo.image_url} style={{height:100,width:100,border:'3px solid #fff',borderRadius:'50%'}} /></div>
+                    <WhiteSpace/>
+                    {this.props.faceinfo.nickname?this.props.faceinfo.nickname:<Button size="small" type="ghost" >添加昵称</Button>}
                 </Flex>
                 <List>
                     <List.Item arrow="horizontal">基本资料</List.Item>

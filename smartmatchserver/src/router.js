@@ -12,6 +12,9 @@ var signature = require('wx_jsapi_sign')
 var randomword = require('../utils/hanku').randomWord
 var httpclient = require('../utils/httpclient')
 var facesdk = require('../utils/FacePlusPlus')
+var matchconst = require('../consts/MatchConst')
+var streetmatchlogic = require("./match/streetmatch")
+var Canvas = require('canvas')
 
 var api_key = "-xm4B_VVb9yNX1W3YDYq01QuEt7ilJ6j";
 var api_secret = "WNsW3PM5e7AQizRkYg2v2k3q0nArBtao";
@@ -535,5 +538,257 @@ module.exports = {
                 res.json({error:null})
             })
         })
+
+        app.post('/createStreetMatch',function(req,res){
+            var {
+                from,     //请求来源，web或者app
+                token,
+                cityname,  //所在城市
+                startnum,  //首发人数
+                sporttype, //体育类型,1代表篮球，2代表足球，3代表羽毛球
+                howwin,    //确定输赢的规则,1代表记分，2代表计时
+                pointwin,  //先达到该比分的一方赢
+                sectioncount, //比赛分几节
+                sectiontime,  //每节的时间,以分钟为单位
+                courttype     //全场还是半场，1代表半场，2代表全场
+            } = req.body;
+
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+
+
+            co(function* () {
+                //创建通用比赛表
+                var Matches_doc = mongoClient.TableDocument(mongoClient.TABLES.Matches);
+                //比赛类型
+                Matches_doc.match_type = matchconst.matchtype.streetmatch;
+                //体育类型
+
+                Matches_doc.sport_type = sporttype ;
+
+                //所在城市
+                Matches_doc.city_name = cityname;
+
+                var showid = yield mongoClient.getMatchShowUniqueID();
+                var internalid = yield mongoClient.getStreetMatchInteralID();
+                Matches_doc.match_showid = showid;
+                Matches_doc.match_uid = internalid;
+                Matches_doc.create_useruid = user_uid;
+                Matches_doc.match_state = matchconst.matchstate.init;
+
+                var result = yield mongoClient.insert(mongoClient.TABLES.Matches,Matches_doc)
+
+                console.log(result);
+
+                //创建野球比赛表
+                var street_match_doc = mongoClient.TableDocument(mongoClient.TABLES.StreetMatches);
+                street_match_doc.match_showid = showid;
+                street_match_doc.match_uid = internalid;
+                street_match_doc.create_useruid = user_uid;
+                street_match_doc.match_rule = {
+                    startup_num:startnum,
+                    howwin:howwin,
+                    pointwin:pointwin,
+                    sectionnum:sectioncount,
+                    sectiontime:sectiontime,
+                    courttype:courttype
+                }
+                var result = yield mongoClient.insert(mongoClient.TABLES.StreetMatches,street_match_doc);
+
+
+                res.json({error:0,match_showid:showid,street_matchid:internalid})
+            })
+
+        })
+
+        app.post('/updateHeaderImage',function (req,res) {
+            var {token,url} = req.body;
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+
+            co(function* () {
+                yield mongoClient.updateOne(mongoClient.TABLES.Users,{uid:user_uid},{'$set':{headerimage:url}});
+                res.json({error:0})
+            })
+
+        })
+
+        app.post('/getUserHeaderImage',function (req,res) {
+            var {uid} = req.body;
+            co(function* () {
+                var docs = yield mongoClient.find(mongoClient.TABLES.Users,{uid:uid})
+                if(docs.length > 0){
+                    console.log({headerimage:docs[0].headerimage})
+                    res.json({headerimage:docs[0].headerimage})
+                }else{
+                    res.json({headerimage:null})
+                }
+            })
+        })
+
+        app.post('/getStreetMatchByUserUid',function (req,res) {
+            var {token} = req.body;
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+            console.log(user_uid);
+            co(function* () {
+                var result = yield mongoClient.find(mongoClient.TABLES.Matches,{
+                    create_useruid:user_uid,
+                    match_type:matchconst.matchtype.streetmatch
+                });
+                console.log(result);
+                res.json({error:0,matches:result})
+
+            })
+        })
+
+        app.post('/getMatchDetailByShowId',function (req,res) {
+            var {showid} = req.body;
+            co(function* () {
+                var total = yield mongoClient.find(mongoClient.TABLES.Matches,{match_showid:showid});
+                if(total.length > 0){
+                    var internalid = total[0].match_uid;
+                    var match_type = total[0].match_type;
+                    if(match_type == matchconst.matchtype.streetmatch){
+                        var detail = yield mongoClient.find(mongoClient.TABLES.StreetMatches,{match_uid:internalid});
+                        res.json({matchinfo:{total:total[0],detail:detail[0]}})
+                    }else{
+                        throw "目前只支持野球比赛"
+                    }
+                }else{
+                    res.json({matchinfo:null})
+                }
+            })
+        })
+
+        app.post("/removeMatchByShowId",function (req,res) {
+            var {token,showid} = req.body;
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+            co(function* () {
+                var total = yield mongoClient.find(mongoClient.TABLES.Matches,{match_showid:showid});
+                //判断是否是比赛创建者本人，只有本人可以删除比赛
+                if(total.length > 0){
+                    if(total[0].create_useruid == user_uid){
+                        yield mongoClient.deleteOne(mongoClient.TABLES.Matches,{match_showid:showid});
+                        var interalid = total[0].match_uid;
+                        var match_type = total[0].match_type;
+                        if(match_type == matchconst.matchtype.streetmatch){
+                            yield mongoClient.deleteOne(mongoClient.TABLES.StreetMatches,{match_uid:interalid});
+                            res.json({error:0})
+                        }
+                    }
+                }
+                res.json({error:2});
+            })
+        })
+
+        app.post("/joinmatch",function (req,res) {
+            streetmatchlogic.joinmatch(req,res);
+        })
+
+        app.post("/updateNickNameOfFaceInfo",function (req,res) {
+            streetmatchlogic.updateNickNameOfFaceInfo(req,res);
+        })
+
+        app.post("/getPlayersOfStreetMatch",function (req,res) {
+            streetmatchlogic.getPlayersOfStreetMatch(req,res);
+        })
+
+        app.get("/createTeamLogo",function (req,res) {
+            var name = "湖人队"
+            function randFromArray(array,count) {
+                array.sort(function(){
+                    return Math.random()>0.5?-1:1;
+                })
+                var shan = array.length - count;
+                for(var i=0;i<shan;i++){
+                    array.pop();
+                }
+                return array.join('');
+            }
+            var color = "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f";
+            var color1 = "#"+randFromArray(color.split(','),6)
+            var color2 = "#"+randFromArray(color.split(','),6)
+            var color3 = "#"+randFromArray(color.split(','),6)
+
+            Canvas.registerFont(__dirname+"/lixuke.ttf", { family: "lixuke"});
+            var Image = Canvas.Image;
+            var canvas = Canvas.createCanvas(120, 120);
+            var cxt = canvas.getContext('2d');
+            cxt.fillStyle=color1;
+            cxt.beginPath();
+            cxt.arc(60,60,60,0,Math.PI*2,true);
+            cxt.closePath();
+            cxt.fill();
+
+            cxt.fillStyle=color2;
+            cxt.beginPath();
+            cxt.arc(60,60,55,0,Math.PI*2,true);
+            cxt.closePath();
+            cxt.fill();
+
+            cxt.fillStyle=color3;
+            cxt.beginPath();
+            cxt.arc(60,60,50,0,Math.PI*2,true);
+            cxt.closePath();
+            cxt.fill();
+
+            //cxt.font="20px Georgia";
+            //cxt.fillStyle='rgba(15,15,15,0.5)';
+            //cxt.strokeText("winaa",20,55);
+
+            // 创建渐变
+            var gradient=cxt.createLinearGradient(0,0,120,0);
+            gradient.addColorStop(0,"magenta");
+            gradient.addColorStop(0.3,"blue");
+            gradient.addColorStop(1.0,"red");
+            // 用渐变填色
+
+
+            fs.readFile(__dirname + '/Lion.png', function(err, squid){
+                if (err) throw err;
+                img = new Image;
+                img.src = squid;
+                cxt.drawImage(img, 28, 28, img.width, img.height);
+                cxt.font="30px lixuke";
+                cxt.fillStyle=gradient;
+                cxt.fillText(name,20,80);
+                res.end('<img src="' + canvas.toDataURL() + '" />');
+            });
+        })
+
 	}
 }

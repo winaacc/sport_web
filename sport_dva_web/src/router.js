@@ -18,6 +18,13 @@ import SelfPersonPage from './routes/SelfPersonPage'
 import ShareUrlQrcode from './routes/ShareUrlQrcode'
 import  ShareGongzhongQrcode from './routes/ShareGongzhongQrcode'
 import OtherPersonPage from './routes/OtherPersonPage'
+import SocketIOPage from './routes/SocketIOPage'
+import CreateStreetMatch from './routes/match/CreateStreetMatch'
+import SearchMatchResult from './routes/match/SearchMatchResult'
+import bindcellphone from './routes/auth/bindcellphone'
+import smscode from './routes/auth/smscode'
+import bindresult from './routes/auth/bindresult'
+
 import {
     Button,
     Toast,
@@ -96,6 +103,12 @@ var pages = {
     ShareUrlQrcode:{screen:ShareUrlQrcode},
     ShareGongzhongQrcode:{screen:ShareGongzhongQrcode},
     OtherPersonPage:{screen:OtherPersonPage},
+    SocketIOPage:{screen:SocketIOPage},
+    CreateStreetMatch:{screen:CreateStreetMatch},
+    SearchMatchResult:{screen:SearchMatchResult},
+    bindcellphone:{screen:bindcellphone},
+    smscode:{screen:smscode},
+    bindresult:{screen:bindresult},
 }
 
 var Main = (params)=>{

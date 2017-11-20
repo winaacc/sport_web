@@ -22,7 +22,7 @@ export default class App extends React.Component{
 
     componentDidMount(){
         var params = this.props.navigation.params;
-        Toast.info(JSON.stringify(params));
+        //Toast.info(JSON.stringify(params));
         var arr = params.data.split(':');
         if(arr[0] == 'faceid'){
             var face_token = arr[1];
