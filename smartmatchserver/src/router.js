@@ -14,7 +14,6 @@ var httpclient = require('../utils/httpclient')
 var facesdk = require('../utils/FacePlusPlus')
 var matchconst = require('../consts/MatchConst')
 var streetmatchlogic = require("./match/streetmatch")
-var Canvas = require('canvas')
 
 var api_key = "-xm4B_VVb9yNX1W3YDYq01QuEt7ilJ6j";
 var api_secret = "WNsW3PM5e7AQizRkYg2v2k3q0nArBtao";
@@ -744,9 +743,11 @@ module.exports = {
             var color2 = "#"+randFromArray(color.split(','),6)
             var color3 = "#"+randFromArray(color.split(','),6)
 
-            Canvas.registerFont(__dirname+"/lixuke.ttf", { family: "lixuke"});
-            var Image = Canvas.Image;
-            var canvas = Canvas.createCanvas(120, 120);
+            var {Image,createCanvas,registerFont} = require('canvas-prebuilt/canvas')
+            console.log(registerFont);
+            registerFont(__dirname+"/lixuke.ttf", { family: "lixuke"});
+
+            var canvas = createCanvas(120, 120);
             var cxt = canvas.getContext('2d');
             cxt.fillStyle=color1;
             cxt.beginPath();

@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
-    "canvas": "^2.0.0-alpha.6",
+    "canvas-prebuilt": "^2.0.0-alpha.5",
     "co": "^4.6.0",
     "compression": "^1.7.1",
     "express": "^4.14.0",
