@@ -101,25 +101,66 @@ exports.TableDocument = function(tablename){
             *   sectionnum  每局比赛分几节
             *   sectiontime 每节比赛的时间
             *   pointwin    每局比赛，首先达到该分数的球队获胜
-            *   courttype   全场还是半场
+            *   courttype   全场还是半场ffffgfdf
             * }
             * */
             match_rule:{},   //比赛规则
-            match_players:[], //比赛总人数
-            match_teams:[],   //根据比赛人数创建的临时球队
-            match_games:[],   //比赛的每局比赛，根据比赛的进行，逐渐增多，初始为空
-            match_result:{},   //比赛结果
+            match_players:[], //比赛总人数 //uid或face_token的数组
+            match_teams:[],   //根据比赛人数创建的临时球队 {teamid:i,name:"",logo:"",members:[]};
+            match_games:[],   //比赛的每局比赛，根据比赛的进行，逐渐增多，初始为空 {schedule_uid:-1,teamID1:-1,teamID2:-1,gameset:[]}
             createtime:Date.now()
         }
         return doc;
-    }else if(tablename == TABLES.Games){
+    }else if(tablename == TABLES.Games){ //代表一个系列赛的一局比赛，例如3局两胜
         var doc = {
+            game_uid:-1,
+            match_showid:-1,
+            Referee_uid:-1,
+            //热身赛
+            teamID1:-1,    //参赛球队
+            teamID2:-1,    //参赛球队
+            //联赛
+            season_id:-1,    //赛季ID
+            schedule_id:-1,  //赛程ID
 
+            team1Player:[], //参赛球员大名单
+            team2Player:[], //参赛球员大名单
+            team1Startup:[], //首发
+            team2Startup:[],  //首发
+            position:null,    //比赛地点
+            matchdate: '', //比赛日期
+            matchtime : "", //比赛开始时间
+            room_uid:null,
+            status:0, //0代表初始化，1代表球队大名单确定，2首发确定，3比赛开始，4比赛结束
+            createtime : Date.now(), //创建时间
         }
         return doc;
     }else if(tablename == TABLES.Rooms){
         var doc = {
-
+            room_uid:null,  //
+            game_uid:null,
+            audiencenum:0,  //观赛人次，累计值
+            team1currentplayers:[],
+            team2currentplayers:[],
+            team1currentscore : 0,
+            team2currentscore : 0,
+            currentsection : 1,
+            currentsectiontime : 10*60,
+            currentattacktime : 24,
+            team1timeout:7,
+            team2timeout:7,
+            ballowner:0,   //0代表两队都没有球权，1代表队伍1获得球权，2代表队伍2获得球权
+            matchrecord : [], //比赛记录，记录比赛的每一步进程，可以生成文字直播，格式{时间，操作}
+            chat:[], // 聊天室
+            Technician : [], //计分员，负责计分，计时，技术统计,换人，暂停，可多人
+            StatisticalData:{}, //参赛球员本场比赛的技术数据
+            mvpofgame:0,       //本场MVP
+            isVideoLive:false,    //是否有视频直播
+            livePushUrl:"",       //直播推送地址
+            livePlayRtmpUrl:"",   //直播播放地址
+            livePlayHlsUrl:"",    //直播播放地址
+            videoRecord:"",       //比赛录像
+            videohighlights:[]    //视频集锦
         }
         return doc;
     }
@@ -214,7 +255,7 @@ function getUserUniqueID(cb){
         upsert: true
     },function(err,result){
         var id = result.value.maxuserid;
-        id = 100000+id;
+        id = 1000+id;
         cb(err,id);
     })
 }
@@ -230,7 +271,7 @@ function getMatchShowUniqueID(cb) {
         upsert: true
     },function(err,result){
         var id = result.value.maxshowmatchid;
-        id = 100000+id;
+        id = 1000+id;
         cb(err,id);
     })
 }
@@ -246,12 +287,91 @@ function getStreetMatchInteralID(cb) {
         upsert: true
     },function(err,result){
         var id = result.value.maxstreetmatchid;
-        id = 100000+id;
+        id = 1000+id;
         cb(err,id);
     })
 }
 
 exports.getStreetMatchInteralID = thunkify(getStreetMatchInteralID)
+
+
+//获得game唯一ID
+function getGameUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'maxgameuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.maxgameuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getGameUniqueID = thunkify(getGameUniqueID)
+
+//获得room唯一ID
+function getRoomUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'maxroomuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.maxroomuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getRoomUniqueID = thunkify(getRoomUniqueID)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

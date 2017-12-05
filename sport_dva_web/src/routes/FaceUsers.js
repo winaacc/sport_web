@@ -104,6 +104,7 @@ export default class App extends React.Component{
                             <div><span style={{ fontSize: '30px', color: '#FF6E27' }}>{rowID}</span>¥</div>
                             <div>{JSON.stringify(rowData.face_rectangle)}</div>
                             <Button size="small" onClick={()=>{this.deleteFace(rowData.face_token)}}>删除</Button>
+                            <Button size="small" onClick={()=>{console.log(rowData.image_url);console.log(rowData.face_rectangle)}}>头像地址</Button>
                         </div>
                     </div>
                 </div>

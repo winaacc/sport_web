@@ -149,7 +149,9 @@ export default class App extends React.Component{
                     <WingBlank>
                     <Flex>
                         <Flex.Item><Button size="small" type="primary">二维码</Button></Flex.Item>
-                        <Flex.Item><Button size="small" type="primary">组队</Button></Flex.Item>
+                        <Flex.Item><Button onClick={()=>{
+                            this.props.navigation.navigate("CreateTempTeam")
+                        }} size="small" type="primary">组队</Button></Flex.Item>
                         <Flex.Item><Button size="small" type="primary">开始比赛</Button></Flex.Item>
                     </Flex>
                     </WingBlank>

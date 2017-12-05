@@ -19,5 +19,13 @@ module.exports = {
         basketball:1,
         football:2,
         Badminton:3
+    },
+    league_type:{
+        win_on_court:1,
+        cup:2,
+        loop:3,
+        nba:4,
+        world_cup:5,
+        custom:6
     }
 }

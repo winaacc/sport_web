@@ -538,6 +538,7 @@ module.exports = {
             })
         })
 
+        //只有正式用户才可以创建比赛
         app.post('/createStreetMatch',function(req,res){
             var {
                 from,     //请求来源，web或者app
@@ -726,8 +727,9 @@ module.exports = {
             streetmatchlogic.getPlayersOfStreetMatch(req,res);
         })
 
-        app.get("/createTeamLogo",function (req,res) {
-            var name = "湖人队"
+        app.post("/createTeamLogo",function (req,res) {
+            var {teamname} = req.body;
+            var name = teamname;
             function randFromArray(array,count) {
                 array.sort(function(){
                     return Math.random()>0.5?-1:1;
@@ -785,10 +787,38 @@ module.exports = {
                 img.src = squid;
                 cxt.drawImage(img, 28, 28, img.width, img.height);
                 cxt.font="30px lixuke";
-                cxt.fillStyle=gradient;
+                cxt.fillStyle= 'white' //gradient;
                 cxt.fillText(name,20,80);
-                res.end('<img src="' + canvas.toDataURL() + '" />');
+                res.json({base64:canvas.toDataURL()});
             });
+        })
+
+        app.post("/createTempTeams",function (req,res) {
+            streetmatchlogic.createTempTeams(req,res);
+        })
+
+        app.post("/uploadTeamNameLogo",function (req,res) {
+            streetmatchlogic.uploadTeamNameLogo(req,res);
+        })
+
+        app.post("/createInitSchedule",function (req,res) {
+            streetmatchlogic.createInitSchedule(req,res);
+        })
+
+        app.post("/getGameListOfScheduleId",function (req,res) {
+            streetmatchlogic.getGameListOfScheduleId(req,res);
+        })
+
+        app.post('/getPlayerInfosOfUids',function (req,res) {
+            streetmatchlogic.getPlayerInfosOfUids(req,res);
+        })
+
+        app.post("/adminGame",function (req,res) {
+            streetmatchlogic.adminGame(req,res);
+        })
+
+        app.post("/getGameInfo",function (req,res) {
+            streetmatchlogic.getGameInfo(req,res);
         })
 
 	}

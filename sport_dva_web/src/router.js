@@ -24,6 +24,7 @@ import SearchMatchResult from './routes/match/SearchMatchResult'
 import bindcellphone from './routes/auth/bindcellphone'
 import smscode from './routes/auth/smscode'
 import bindresult from './routes/auth/bindresult'
+import CreateTempTeam from './routes/match/CreateTempTeam'
 
 import {
     Button,
@@ -109,6 +110,7 @@ var pages = {
     bindcellphone:{screen:bindcellphone},
     smscode:{screen:smscode},
     bindresult:{screen:bindresult},
+    CreateTempTeam:{screen:CreateTempTeam},
 }
 
 var Main = (params)=>{
