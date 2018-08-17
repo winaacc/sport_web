@@ -821,5 +821,123 @@ module.exports = {
             streetmatchlogic.getGameInfo(req,res);
         })
 
+        app.post("/createShootMatch",function (req,res) {
+            var {token,count,durationtime,begintime} = req.body;
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+
+            co(function *() {
+                var maxuid = yield mongoClient.getShootMatchUniqueID();
+                var newobj = mongoClient.TableDocument(mongoClient.TABLES.ShootMatches);
+                newobj.shootmatch_uid = maxuid;
+                newobj.creater = user_uid;
+                newobj.playercount = count;
+                newobj.members.push(user_uid);
+                newobj.shootcounts.push(0);
+                newobj.durationtime = durationtime;
+                newobj.begintime = begintime;
+
+                yield mongoClient.insert(mongoClient.TABLES.ShootMatches,newobj);
+
+                res.json({error:0});
+            })
+        })
+
+        app.post("/getAllShootMatch",function (req,res) {
+            var {token} = req.body;
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+            console.log(typeof user_uid)
+            var result = {
+                createdMatches:[],
+                joinedMatches:[],
+                nearbyMatches:[]
+            }
+
+            co(function* () {
+                var matchinfos = yield mongoClient.find(mongoClient.TABLES.ShootMatches,{});
+                //获得每一个用户的头像和昵称
+                for(var i=0;i<matchinfos.length;i++){
+                    console.log("matchinfos[i].creater",typeof matchinfos[i].creater);
+                    if(user_uid == matchinfos[i].creater){
+                        result.createdMatches.push(matchinfos[i])
+                    }else if(matchinfos[i].members.indexOf(user_uid) != -1){
+                        result.joinedMatches.push(matchinfos[i])
+                    }else{
+                        result.nearbyMatches.push(matchinfos[i]);
+                    }
+                    //获得用于显示的用户数据
+                    for(var j=0;j<matchinfos[i].members.length;j++){
+                        var useruid = matchinfos[i].members[j];
+                        var userinfo = yield mongoClient.find(mongoClient.TABLES.Users,{uid:useruid});
+                        var obj = {
+                            headerimage:userinfo[0].headerimage,
+                            nickname:userinfo[0].nickname,
+                            uid:userinfo[0].uid
+                        }
+                        matchinfos[i].members[j] = obj;
+                    }
+                }
+                res.json(result)
+            })
+        })
+
+        app.post("/joinShootMatch",function (req,res) {
+            var {token,matchuid} = req.body;
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+
+            co(function* () {
+                var matchinfos = yield mongoClient.find(mongoClient.TABLES.ShootMatches,{shootmatch_uid:matchuid});
+                if(matchinfos.length == 0){
+                    return res.json({error:2})
+                }
+                if(matchinfos[0].state != 0){
+                    return res.json({error:3})
+                }
+
+                if(matchinfos[0].members.length >= matchinfos[0].playercount){
+                    return res.json({error:4})
+                }
+
+                if(matchinfos[0].members.indexOf(user_uid) != -1){
+                    return res.json({error:5})
+                }
+
+                //把用户加入参赛列表中
+                matchinfos[0].members.push(user_uid);
+                matchinfos[0].shootcounts.push(0);
+
+                yield mongoClient.updateOne(mongoClient.TABLES.ShootMatches,{shootmatch_uid:matchuid},{
+                    '$push':{members:user_uid,shootcounts:0}
+                })
+                return res.json({error:0})
+            })
+        })
+
 	}
 }

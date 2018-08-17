@@ -26,6 +26,7 @@ var TABLES = {
     StreetMatches:'T_StreetMatches', //野球比赛表
     Games:'T_Games',                 //每局比赛信息存储表
     Rooms:"T_Rooms",                 //每局比赛进行过程信息表
+    ShootMatches:"T_ShootMatches"    //远程投篮比赛
 }
 
 exports.TABLES = TABLES;
@@ -161,6 +162,21 @@ exports.TableDocument = function(tablename){
             livePlayHlsUrl:"",    //直播播放地址
             videoRecord:"",       //比赛录像
             videohighlights:[]    //视频集锦
+        }
+        return doc;
+    }else if(tablename == TABLES.ShootMatches){
+        var doc = {
+            shootmatch_uid:-1,
+            creater:-1,
+            playercount:2,
+            members:[],     //比赛参与方唯一ID数组
+            shootcounts:[], //比赛球员命中数量
+            durationtime:5*60,
+            begintime:-1,
+            state:0, //比赛状态，0代表未开始，1代表正在进行，2代表结束了,但视频没有上传，3代表视频上传成功
+            winner:-1,
+            videourl:"",
+            createtime:new Date().getTime()
         }
         return doc;
     }
@@ -326,6 +342,22 @@ function getRoomUniqueID(cb) {
 }
 
 exports.getRoomUniqueID = thunkify(getRoomUniqueID)
+
+//获得投篮比赛唯一ID
+function getShootMatchUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'shootmatchuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.shootmatchuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getShootMatchUniqueID = thunkify(getShootMatchUniqueID)
 
 
 

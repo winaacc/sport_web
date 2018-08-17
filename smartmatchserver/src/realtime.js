@@ -1,8 +1,11 @@
 var mongoClient = require("../db/mongoClient")
 var co = require('co');
 var thunkify = require('thunkify');
+var verifyToken = require("../utils/token").verifyToken;
 
 var rooms = {}; //room_uid:{database:{},permission:{},audiences:{}}
+
+var shootmatches = {};
 
 //推送给客户端的事件
 const clientEvent = {
@@ -25,6 +28,9 @@ const clientEvent = {
     updateBlock:17,
     updateSubstitution:18,
     updateMVPofGame:19,
+    updatebeforetime:20,
+    updatecountdowntime:21,
+    updateShootScore:22
 }
 
 //服务器收到的事件
@@ -51,7 +57,11 @@ const serverEvent = {
     updateBlock:20,
     updateSubstitution:21,
     updateMVPofGame:22,
-    unsetPermission:23
+    unsetPermission:23,
+    enterShootMatch:24,
+    startShootMatch:25,
+    ShootMatchUpdateScore:26,
+    ShootMatchVideoUrl:27,
 }
 
 const permissionType = {
@@ -94,6 +104,18 @@ function logout(socket,io) {
         }
     }
     delete socket.sport;
+
+    //退出投篮比赛赛场
+    if(socket.shootMatchInfo){
+        //用户已经进入房间，需要清理数据
+        var matchuid = socket.shootMatchInfo.matchuid;
+        var roomid = socket.shootMatchInfo.roomid;
+        var useruid = socket.shootMatchInfo.useruid;
+        delete shootmatches[matchuid].currentplayers[useruid];
+        console.log("currentplayers:"+Object.keys(shootmatches[matchuid].currentplayers).length)
+        socket.leave(roomid);
+        delete socket.shootMatchInfo;
+    }
 }
 
 module.exports = {
@@ -550,6 +572,166 @@ module.exports = {
                 var player_uid = msg.player_uid;
                 rooms[room_uid].database.mvpofgame = player_uid;
                 io.to(room_uid).emit(clientEvent.updateMVPofGame,msg);
+            })
+
+            socket.on(serverEvent.enterShootMatch,function (msg,cb) {
+                var {token,matchuid,agorauid} = msg;
+                console.log("agorauid:"+agorauid);
+                var useruid = null;
+                var decoded = verifyToken(token);
+                if(decoded.error){
+                    //token过期
+                    cb({error:1})
+                    return;
+                }else {
+                    useruid = decoded.uid;
+                }
+                //
+                    co(function* () {
+                        //获得比赛信息
+                        var matchinfos = yield mongoClient.find(mongoClient.TABLES.ShootMatches,{shootmatch_uid:matchuid});
+                        if(matchinfos.length == 0){
+                            cb({error:2})
+                            return;
+                        }
+                        //判断参赛球员数量是否满足要求
+                        if(matchinfos[0].members.length < matchinfos[0].playercount){
+                            cb({error:3})
+                            return;
+                        }
+
+                        var index = matchinfos[0].members.indexOf(useruid);
+                        //用户没有参加该场比赛
+                        if(index == -1){
+                            cb({error:4});
+                            return;
+                        }
+
+                        if(!shootmatches[matchuid]){
+                            shootmatches[matchuid] = {};
+                            shootmatches[matchuid].creater = matchinfos[0].creater;
+                            shootmatches[matchuid].playercount = matchinfos[0].playercount;
+                            shootmatches[matchuid].members = matchinfos[0].members;
+                            shootmatches[matchuid].shootcounts = matchinfos[0].shootcounts;
+                            shootmatches[matchuid].durationtime = matchinfos[0].durationtime;
+                            shootmatches[matchuid].state = matchinfos[0].state;
+                            shootmatches[matchuid].winner = matchinfos[0].winner;
+                            shootmatches[matchuid].videourl = matchinfos[0].videourl;
+                            shootmatches[matchuid].currentplayers = {};
+                            shootmatches[matchuid].timerBeforeBegin = null; //比赛开始之前，倒数10下
+                            shootmatches[matchuid].timerCountDown = null;   //比赛开始后的正式计时
+                            shootmatches[matchuid].beforebeginTime = 10;  //10秒倒计时，倒计时结束后，比赛正式开始
+                            shootmatches[matchuid].currenttime = matchinfos[0].durationtime;
+                            //获得比赛参与方的头像，昵称等信息
+                            shootmatches[matchuid].userinfos = {};
+                            for(var i=0;i<shootmatches[matchuid].members.length;i++){
+                                var memberuid = shootmatches[matchuid].members[i];
+                                var result = yield mongoClient.find(mongoClient.TABLES.Users,{uid:memberuid});
+                                shootmatches[matchuid].userinfos[memberuid] = {
+                                    headerimage:result[0].headerimage,
+                                    nickname:result[0].nickname
+                                }
+                            }
+                        }
+
+
+                        shootmatches[matchuid].currentplayers[useruid] = {
+                            score:shootmatches[matchuid].shootcounts[index],
+                            agorauid:agorauid,
+                            socket:socket
+                        };
+
+                        var roomname = "shootmatch"+matchuid;
+                        socket.join(roomname);
+
+                        socket.shootMatchInfo = {
+                            matchuid:matchuid,
+                            useruid:useruid,
+                            agorauid:agorauid,
+                            roomid:roomname,
+                        };
+
+                        cb({error:0,myuid:useruid,userinfo:shootmatches[matchuid].userinfos})
+                    })
+
+
+            })
+            
+            socket.on(serverEvent.startShootMatch,function (msg,cb) {
+                if(!socket.shootMatchInfo){
+                    cb({error:1})
+                    return;
+                }
+
+                var {matchuid,useruid,agorauid,roomid} = socket.shootMatchInfo;
+
+                if(!shootmatches[matchuid]){
+                    cb({error:2})
+                    return;
+                }
+
+                //只有创建者才能开始比赛
+                if(shootmatches[matchuid].creater != useruid){
+                    cb({error:3})
+                    return;
+                }
+
+                //判断房间当前人数是否够
+                if(Object.keys(shootmatches[matchuid].currentplayers).length != shootmatches[matchuid].playercount){
+                    cb({error:4})
+                    return;
+                }
+
+                //判断比赛是否正在进行或者已经结束
+                if(shootmatches[matchuid].state != 0){
+                    cb({error:5});
+                    return;
+                }
+
+                //开始比赛
+                shootmatches[matchuid].state = 1;
+                io.to(roomid).emit(clientEvent.updatebeforetime,{time:shootmatches[matchuid].beforebeginTime});
+                shootmatches[matchuid].timerBeforeBegin = setInterval(function () {
+                    shootmatches[matchuid].beforebeginTime--;
+                    io.to(roomid).emit(clientEvent.updatebeforetime,{time:shootmatches[matchuid].beforebeginTime});
+                    if(shootmatches[matchuid].beforebeginTime == 0){
+                        clearInterval(shootmatches[matchuid].timerBeforeBegin);
+                        io.to(roomid).emit(clientEvent.updatecountdowntime,{time:shootmatches[matchuid].currenttime})
+                        shootmatches[matchuid].timerCountDown = setInterval(function () {
+                            shootmatches[matchuid].currenttime--;
+                            io.to(roomid).emit(clientEvent.updatecountdowntime,{time:shootmatches[matchuid].currenttime})
+                            if(shootmatches[matchuid].currenttime == 0){
+                                //比赛结束，确认输赢，并存入数据库
+                                clearInterval(shootmatches[matchuid].timerCountDown);
+                                shootmatches[matchuid].state = 2;
+                            }
+                        },1000)
+                    }
+                },1000)
+
+                cb({error:0})
+            })
+
+            socket.on(serverEvent.ShootMatchUpdateScore,function (msg,cb) {
+                if(!socket.shootMatchInfo){
+                    cb({error:1})
+                    return;
+                }
+
+                var {matchuid,useruid,agorauid,roomid} = socket.shootMatchInfo;
+
+                if(shootmatches[matchuid].state != 1){
+                    cb({error:2})
+                    return;
+                }
+
+                shootmatches[matchuid].currentplayers[useruid].score++;
+                io.to(roomid).emit(clientEvent.updateShootScore,{agorauid:agorauid,score:shootmatches[matchuid].currentplayers[useruid].score})
+                cb({error:0})
+            })
+            
+            socket.on(serverEvent.ShootMatchVideoUrl,function (msg,cb) {
+                console.log(msg.url);
             })
         });
     }
