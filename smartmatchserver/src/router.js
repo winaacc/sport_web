@@ -938,6 +938,26 @@ module.exports = {
                 return res.json({error:0})
             })
         })
+        
+        app.post("/deleteShootMatch",function (req,res) {
+            var {token,matchuid} = req.body;
+            console.log("matchuid:"+matchuid)
+            var user_uid = null;
+            //验证token
+            var decoded = verifyToken(token);
+            if(decoded.error){
+                //token过期
+                res.json({error:1})
+                return;
+            }else{
+                user_uid = decoded.uid;
+            }
+
+            co(function* () {
+                yield mongoClient.deleteOne(mongoClient.TABLES.ShootMatches,{shootmatch_uid:matchuid})
+                res.json({error:0})
+            })
+        })
 
 	}
 }
