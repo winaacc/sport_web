@@ -14,6 +14,7 @@ var httpclient = require('../utils/httpclient')
 var facesdk = require('../utils/FacePlusPlus')
 var matchconst = require('../consts/MatchConst')
 var streetmatchlogic = require("./match/streetmatch")
+var normalsociallogic = require("./NormalSocial")
 
 var api_key = "-xm4B_VVb9yNX1W3YDYq01QuEt7ilJ6j";
 var api_secret = "WNsW3PM5e7AQizRkYg2v2k3q0nArBtao";
@@ -957,6 +958,90 @@ module.exports = {
                 yield mongoClient.deleteOne(mongoClient.TABLES.ShootMatches,{shootmatch_uid:matchuid})
                 res.json({error:0})
             })
+        })
+
+        app.post("/createTimeLine",function (req,res) {
+            normalsociallogic.createTimeLine(req,res);
+        })
+        
+        app.post("/getAllTimeLines",function (req,res) {
+            normalsociallogic.getAllTimeLines(req,res);
+        })
+        
+        app.post("/getMyTimeLines",function (req,res) {
+            normalsociallogic.getMyTimeLines(req,res);
+        })
+        
+        app.post("/getOtherTimeLines",function (req,res) {
+            normalsociallogic.getOtherTimeLines(req,res);
+        })
+
+        app.post("/deleteTimeLines",function (req,res) {
+            normalsociallogic.deleteTimeLines(req,res);
+        })
+
+        app.post("/commentTimeLine",function (req,res) {
+            normalsociallogic.commentTimeLine(req,res);
+        })
+
+        app.post("/deleteTimeLineComment",function (req,res) {
+            normalsociallogic.deleteTimeLineComment(req,res);
+        })
+
+        app.post("/getCommentofTimeLine",function (req,res) {
+            normalsociallogic.getCommentofTimeLine(req,res);
+        })
+
+        app.post("/sendMessage",function (req,res) {
+            normalsociallogic.sendMessage(req,res);
+        })
+
+        app.post("/processMessage",function (req,res) {
+            normalsociallogic.processMessage(req,res);
+        })
+
+        app.post("/friendApply",function (req,res) {
+            normalsociallogic.friendApply(req,res);
+        })
+
+        app.post("/attentionPeople",function (req,res) {
+            normalsociallogic.attentionPeople(req,res);
+        })
+
+        app.post("/deleteAttention",function (req,res) {
+            normalsociallogic.deleteAttention(req,res);
+        })
+
+        app.post("/deleteFriend",function (req,res) {
+            normalsociallogic.deleteFriend(req,res);
+        })
+
+        app.post("/getFriends",function (req,res) {
+            normalsociallogic.getFriends(req,res);
+        })
+
+        app.post("/getAttentions",function (req,res) {
+            normalsociallogic.getAttentions(req,res);
+        })
+
+        app.post("/getFans",function (req,res) {
+            normalsociallogic.getFans(req,res);
+        })
+
+        app.post("/getReceivedMessages",function (req,res) {
+            normalsociallogic.getReceivedMessages(req,res);
+        })
+
+        app.post("/getChatHistory",function (req,res) {
+            normalsociallogic.getChatHistory(req,res);
+        })
+
+        app.post("/deleteMessage",function (req,res) {
+            normalsociallogic.deleteMessage(req,res);
+        })
+
+        app.post("/getNearbyUsers",function (req,res) {
+            normalsociallogic.getNearbyUsers(req,res);
         })
 
 	}

@@ -26,7 +26,14 @@ var TABLES = {
     StreetMatches:'T_StreetMatches', //野球比赛表
     Games:'T_Games',                 //每局比赛信息存储表
     Rooms:"T_Rooms",                 //每局比赛进行过程信息表
-    ShootMatches:"T_ShootMatches"    //远程投篮比赛
+    ShootMatches:"T_ShootMatches",   //远程投篮比赛
+    TimeLines:"T_TimeLines",         //用户动态，包含文字和图片
+    TimeLineComments:"T_TimeLineComments", //用户动态的评论
+    Friends:"T_Friends",               //好友表
+    Messages:"T_Messages",             //消息表
+    Attentions:"T_Attentions",         //关注表
+    Fans      :"T_Fans",               //粉丝表
+
 }
 
 exports.TABLES = TABLES;
@@ -176,6 +183,63 @@ exports.TableDocument = function(tablename){
             state:0, //比赛状态，0代表未开始，1代表正在进行，2代表结束了,但视频没有上传，3代表视频上传成功
             winner:-1,
             videourl:"",
+            createtime:new Date().getTime()
+        }
+        return doc;
+    }else if(tablename == TABLES.TimeLines){
+        var doc = {
+            timeline_uid:-1,
+            creater:-1,
+            text:"",
+            images:[],
+            location:{},
+            whocansee:-1,
+            createtime:new Date().getTime()
+        }
+        return doc;
+    }else if(tablename == TABLES.TimeLineComments){
+        var doc = {
+            comment_uid:-1,
+            timeline_uid:-1,
+            creater:-1,
+            iszan:false,
+            text:"",
+            createtime:new Date().getTime()
+        }
+        return doc;
+    }else if(tablename == TABLES.Friends){
+        var doc = {
+            relation_uid:-1,
+            owner:-1,
+            friend_uid:-1,
+            createtime:new Date().getTime()
+        }
+        return doc;
+    }else if(tablename == TABLES.Attentions){
+        var doc = {
+            relation_uid:-1,
+            owner:-1,
+            admirer_uid:-1,
+            createtime:new Date().getTime()
+        }
+        return doc;
+    }else if(tablename == TABLES.Fans){
+        var doc = {
+            relation_uid:-1,
+            owner:-1,
+            fan_uid:-1,
+            createtime:new Date().getTime()
+        }
+        return doc;
+    }else if(tablename == TABLES.Messages){
+        var doc = {
+            message_uid:-1,
+            sender:-1,
+            receiver:-1,
+            text:"",
+            type:0,
+            metadata:{},
+            state:0,
             createtime:new Date().getTime()
         }
         return doc;
@@ -359,8 +423,101 @@ function getShootMatchUniqueID(cb) {
 
 exports.getShootMatchUniqueID = thunkify(getShootMatchUniqueID)
 
+//时间线唯一ID
+function getTimeLineUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'timelineuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.timelineuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
 
+exports.getTimeLineUniqueID = thunkify(getTimeLineUniqueID)
 
+//时间线评论唯一ID
+function getCommentOfTimeLineUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'timelincommentuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.timelincommentuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getCommentOfTimeLineUniqueID = thunkify(getCommentOfTimeLineUniqueID)
+
+//好友关系唯一ID
+function getFriendRelationUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'friendrelationuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.friendrelationuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getFriendRelationUniqueID = thunkify(getFriendRelationUniqueID)
+
+//关注关系唯一ID
+function getAttentionRelationUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'attentionrelationuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.attentionrelationuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getAttentionRelationUniqueID = thunkify(getAttentionRelationUniqueID)
+
+//粉丝关系唯一ID
+function getFanRelationUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'fanrelationuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.fanrelationuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getFanRelationUniqueID = thunkify(getFanRelationUniqueID)
+
+//消息唯一ID
+function getMessageUniqueID(cb) {
+    var db = mongoConnection;
+    var collection = db.collection("maxids");
+    collection.findOneAndUpdate({userid:1},{'$inc':{'messageuid':1}},{
+        returnOriginal: false,
+        upsert: true
+    },function(err,result){
+        var id = result.value.messageuid;
+        id = 1000+id;
+        cb(err,id);
+    })
+}
+
+exports.getMessageUniqueID = thunkify(getMessageUniqueID)
 
 
 
