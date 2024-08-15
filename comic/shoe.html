@@ -1,0 +1,900 @@
+<html>
+
+<head>
+    <script src="js/axios.min.js"></script>
+    <script src="js/vue.global.js"></script>
+    <link href="js/bootstrap-5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="js/elementUI/index.css" />
+    <script src="js/elementUI/index.full.js"></script>
+    <script src="js/socket.io.js"></script>
+    <script>
+        CanvasRenderingContext2D.prototype.wrapText = function (text, x, y, maxWidth, lineHeight) {
+            if (typeof text != 'string' || typeof x != 'number' || typeof y != 'number') {
+                return;
+            }
+
+            var context = this;
+            var canvas = context.canvas;
+
+            if (typeof maxWidth == 'undefined') {
+                maxWidth = (canvas && canvas.width) || 300;
+            }
+            if (typeof lineHeight == 'undefined') {
+                lineHeight = (canvas && parseInt(window.getComputedStyle(canvas).lineHeight)) || parseInt(window.getComputedStyle(document.body).lineHeight);
+            }
+
+            // 字符分隔为数组
+            var arrText = text.split('');
+            var line = '';
+
+
+
+
+
+
+
+
+
+            for (var n = 0; n < arrText.length; n++) {
+                var testLine = line + arrText[n];
+                var metrics = context.measureText(testLine);
+                var testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    context.fillText(line, x, y);
+                    line = arrText[n];
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            context.fillText(line, x, y);
+        };
+    </script>
+</head>
+
+<body>
+    <div id="app">
+
+        <div v-show="isShowGameUI" class="m-1" style="display: flex;">
+            <div>
+                <canvas id="stickcplus2Lcd" width="240" height="135"></canvas>
+            </div>
+            
+            <div class="m-1">
+                <div>
+                    <div>
+                        <div class="m-2">
+                            <button @click="gotoMainUI()">返回主界面</button>
+                        </div>
+
+                        <div>
+                            <div>
+                                <button @click="gotoTaskUI()">任务面板</button>
+                                <button @click="gotoItemWareUI()">道具仓库面板</button>
+                                <button @click="gotoEquipmentWareUI()">装备仓库面板</button>
+                            </div>
+                            <div>
+                                <button @click="gotoWorkbenchUI()">工作台面板</button>
+                                <button @click="gotoMagicUI()">魔法面板</button>
+                                <button @click="gotoShootSkillUI()">投篮技能面板</button>
+                            </div>
+                            <div>
+                                <button @click="gotoFightUI()">战斗场景</button>
+                                <button @click="gotoCharacterUI()">属性面板</button>
+                                <button @click="gotoMonsterUI()">怪物图鉴</button>
+                            </div>
+                                                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex;">
+            <div class="border p-2">
+                <div class="p-2">
+                    <button @click="toggleGameUI()">界面</button>
+                    <span>{{playerName}}({{currentHoop}})</span>
+                    <button @click="shootBall()">出手</button>
+                </div>
+                <div>
+                    <button @click="sendUdp('RFIDTag:'+'receiveTask')">接任务</button>
+                    <button @click="chooseHoop('Primary')">选择主球筐</button>
+                    <button @click="chooseHoop('secondary')">选择副球筐</button>
+                </div>
+
+                <div>
+                    <button @click="sendUdp('RFIDTag:'+'tree')">采集树木</button>
+                    <button @click="sendUdp('RFIDTag:'+'flower')">采集紫罗兰</button>
+                </div>
+                <div>
+                    <button @click="sendUdp('RFIDTag:'+'bigSkill:qian')">大招buff</button>
+                    <button @click="sendUdp('RFIDTag:'+'collectItem:tree')">采集树木buff</button>
+                    <button @click="sendUdp('RFIDTag:'+'[F]passball')">四分卫buff</button>
+                    <button @click="sendUdp('RFIDTag:'+'[F]selfRecover')">回城回血</button>
+                </div>
+                <div>
+                    <button @click="sendUdp('RFIDTag:'+'1')">答案1</button>
+                    <button @click="sendUdp('RFIDTag:'+'2')">答案2</button>
+                    <button @click="sendUdp('RFIDTag:'+'3')">答案3</button>
+                    <button @click="sendUdp('RFIDTag:'+'password:340')">钥匙</button>
+                </div>
+                <div>
+                    <button @click="sendUdp('RFIDTag:'+'qianH')">乾位</button>
+                    <button @click="sendUdp('RFIDTag:'+'zhenH')">震位</button>
+                    <button @click="sendUdp('RFIDTag:'+'kunH')">坤位</button>
+                    <button @click="sendUdp('RFIDTag:'+'liH')">离位</button>
+                    <button @click="sendUdp('RFIDTag:'+'duiH')">兑位</button>
+                    <button @click="sendUdp('RFIDTag:'+'kanH')">坎位</button>
+                    <button @click="sendUdp('RFIDTag:'+'xunH')">巽位</button>
+                    <button @click="sendUdp('RFIDTag:'+'genH')">艮位</button>
+                </div>
+            </div>
+            <div class="border p-2" style="display: flex;justify-content: center;align-items: center;flex-direction: column;">
+                <div class="m-2">
+                    <div>
+                        <button @click="chooseOperation(1)">1</button>
+                        <button @click="chooseOperation(2)">2</button>
+                        <button @click="chooseOperation(3)">3</button>
+                    </div>
+    
+                    <div>
+                        <button @click="chooseOperation(4)">4</button>
+                        <button @click="chooseOperation(5)">5</button>
+                        <button @click="chooseOperation(6)">6</button>
+                    </div>
+                    <div>
+                        <button @click="chooseOperation(7)">7</button>
+                        <button @click="chooseOperation(8)">8</button>
+                        <button @click="chooseOperation(9)">9</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <button>使用</button>
+                    <button>上一页</button>
+                    <button>下一页</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script>
+    let UIType = {
+        MAIN : 1,
+        TASK : 2,
+        ITEMWAREHOUSE : 3,
+        EQUIPMENTWAREHOUSE : 4,
+        WORKBENCH : 5,
+        MAGIC : 6,
+        SHOOTSKILL : 7,
+        FIGHT : 8,
+        PERSONDATA : 9,
+        MONSTERLIST : 10
+    }
+</script>
+
+<script>
+    
+
+    const { createApp } = Vue
+    var app = createApp({
+        data() {
+            return {
+                playerName: 'dm',
+                currentHoop: "",
+                isShowGameUI: false,
+                backPack: [],
+                CarriedSkills: [],
+                CarriedMagicItems: [],
+                equipmentSlot: [],
+                itemWarehouse: [],
+                equipmentWarehouse: [],
+                skillList: [],
+                monsterList: [],
+                currentChoosedIndex:-1,
+                currentUIType:UIType.MAIN
+            }
+        },
+        mounted() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (id) {
+                this.playerName = id;
+            }
+
+            window.socket = io();
+            window.socket.on("connect", (event) => {
+                console.log('connection created.')
+
+                window.socket.emit('hello', this.playerName);
+                this.sendUdp("login");
+
+                window.socket.on("udpMessage", (msg) => {
+                    console.log("udpMessage", msg);
+                    let index = msg.indexOf(':');
+                    let name = msg.substring(0, index);
+                    let message = msg.substring(index + 1);
+
+                    if (name == this.playerName) {
+                        this.processUdpMessage(message);
+                    }
+                })
+            })
+        },
+        methods: {
+            chooseOperation(index){
+                this.currentChoosedIndex = index - 1;
+                if(this.currentUIType == UIType.ITEMWAREHOUSE){
+                    this.drawItemWareUI();
+                }else if(this.currentUIType == UIType.EQUIPMENTWAREHOUSE){
+                    this.drawEquipmentWareUI();
+                }else if(this.currentUIType == UIType.MONSTERLIST){
+                    this.drawMonsterUI();
+                }else if(this.currentUIType == UIType.SHOOTSKILL){
+                    this.drawShootSkillUI();
+                }
+                
+            },
+            toggleGameUI() {
+                this.isShowGameUI = !this.isShowGameUI;
+            },
+            getDataAfterColon(data) {
+                let index = data.indexOf(":");
+                return data.substring(index + 1);
+            },
+            initBackpack(str) {
+                let arr = str.split('|');
+                this.backPack = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let type = val.split("->")[2];
+                    this.backPack.push({ id, filename, type });
+                });
+            },
+            initCarriedSkills(str) {
+                let arr = str.split('|');
+                this.CarriedSkills = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let type = val.split("->")[2];
+                    let name = val.split("->")[3];
+                    this.CarriedSkills.push({ id, filename, type, name });
+                });
+            },
+            initCarriedMagicItems(str) {
+                let arr = str.split('|');
+                this.CarriedMagicItems = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let type = val.split("->")[2];
+                    this.CarriedMagicItems.push({ id, filename, type });
+                });
+            },
+            initEquipmentSlot(str) {
+                let arr = str.split('|');
+                this.equipmentSlot = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let type = val.split("->")[2];
+                    this.equipmentSlot.push({ id, filename, type });
+                });
+            },
+            initItemWareHouse(str) {
+                let arr = str.split('|');
+                this.itemWarehouse = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let type = val.split("->")[2];
+                    this.itemWarehouse.push({ id, filename, type });
+                });
+            },
+            initEquipmentWareHouse(str) {
+                let arr = str.split('|');
+                this.equipmentWarehouse = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let type = val.split("->")[2];
+                    this.equipmentWarehouse.push({ id, filename, type });
+                });
+            },
+            initSkillList(str) {
+                let arr = str.split('|');
+                this.skillList = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let type = val.split("->")[2];
+                    let name = val.split("->")[3];
+                    this.skillList.push({ id, filename, type, name });
+                });
+            },
+            initMonsterList(str) {
+                let arr = str.split('|');
+                this.monsterList = [];
+                arr.forEach(val => {
+                    let id = val.split("->")[0];
+                    let filename = val.split("->")[1];
+                    let name = val.split("->")[2];
+                    this.monsterList.push({ id, filename, name });
+                });
+            },
+            processUdpMessage(message) {
+                if (message.startsWith("playerData")) {
+                    let data = this.getDataAfterColon(message);
+                    console.log(data);
+                    let arr = data.split('&');
+
+                    this.initBackpack(arr[0]);
+                    this.initCarriedSkills(arr[1]);
+                    this.initCarriedMagicItems(arr[2]);
+                    this.initEquipmentSlot(arr[3]);
+                    this.initItemWareHouse(arr[4]);
+                    this.initEquipmentWareHouse(arr[5]);
+                    this.initSkillList(arr[6]);
+                    this.initMonsterList(arr[7]);
+
+                    console.log("Backpack", this.backPack);
+                    console.log("CarriedSkills", this.CarriedSkills);
+                    console.log("CarriedMagicItems", this.CarriedMagicItems);
+                    console.log("EquipmentSlot", this.equipmentSlot);
+                    console.log("ItemWareHouse", this.itemWarehouse);
+                    console.log("EquipmentWareHouse", this.equipmentWarehouse);
+                    console.log("SkillList", this.skillList);
+                    console.log("MonsterList", this.monsterList);
+
+                    this.drawMainUI();
+                } else {
+                    this.showTips(message);
+                }
+
+            },
+            showTips(tip) {
+                app.config.globalProperties.$message({
+                    message: tip,
+                    type: 'warning',
+                })
+            },
+            shootBall() {
+                if (!this.currentHoop) {
+                    alert("请先选择球筐")
+                    return;
+                }
+                this.sendUdp("balldetected:" + this.currentHoop)
+            },
+            chooseHoop(hoopName) {
+                if (this.currentHoop) {
+                    alert("已经选择了球筐，不能重复选择！")
+                    return;
+                }
+                this.currentHoop = hoopName;
+                this.sendUdp('RFIDTag:' + 'chooseHoop:' + hoopName)
+            },
+            sendUdp(message) {
+                axios({
+                    method: 'post',
+                    url: '/sendUdp',
+                    data: {
+                        message: this.playerName + "|" + message
+                    }
+                }).then(res => {
+                    console.log(res.data);
+
+                });
+            },
+            drawInteractableNineGrid(ctx,dir,list,currentPage){
+                let size = 40;
+                let gap = 4;
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        let index = j + i * 3;
+                        if (list[index]) {
+                            let item = new Image();
+                            item.src = dir + list[index].filename;
+                            item.onload = () => {
+                                if(this.currentChoosedIndex == index){
+                                    ctx.strokeStyle = '#ff0000';
+                                }else{
+                                    ctx.strokeStyle = '#ffffff';
+                                }
+                                ctx.drawImage(item, gap + 4 + (gap + size) * j, gap + (gap + size) * i, size, size)
+                                ctx.strokeRect(gap + 4 + (gap + size) * j, gap + (gap + size) * i, size, size);
+                            }
+                        } else {
+                            if(this.currentChoosedIndex == index){
+                                ctx.strokeStyle = '#ff0000';
+                            }else{
+                                ctx.strokeStyle = '#ffffff';
+                            }
+                            ctx.strokeRect(gap + 4 + (gap + size) * j, gap + (gap + size) * i, size, size);
+                        }
+
+                    }
+                }
+            },
+            gotoMainUI() {
+                this.currentUIType = UIType.MAIN;
+                this.currentChoosedIndex = -1;
+
+                this.drawMainUI();
+            },
+            gotoTaskUI() {
+                this.currentUIType = UIType.TASK;
+                this.currentChoosedIndex = -1;
+
+                this.drawTaskUI();
+            },
+            drawMainUI() {
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+
+                let gutterX = 5;
+                let gutterY = 5;
+
+                //英雄身上的装备槽位
+                let equipmentSlotSize = 24;
+                for (let i = 0; i < 3; i++) {
+                    let dir = "/img/equipment/";
+                    if (this.equipmentSlot[i]) {
+                        let item = new Image();
+                        item.src = dir + this.equipmentSlot[i].filename;
+                        item.onload = () => {
+                            ctx.drawImage(item, gutterX + (equipmentSlotSize + gutterX) * i, gutterY, equipmentSlotSize, equipmentSlotSize)
+                            //ctx.strokeRect(gutterX + (equipmentSlotSize + gutterX)*i, gutterY, equipmentSlotSize, equipmentSlotSize);
+                        }
+                    } else {
+                        ctx.strokeRect(gutterX + (equipmentSlotSize + gutterX) * i, gutterY, equipmentSlotSize, equipmentSlotSize);
+                    }
+                }
+
+                ctx.fillStyle = '#A98077';
+                //英雄头像
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 3;
+                let playerSize = 64;
+                ctx.fillRect(gutterX + 8, gutterY + equipmentSlotSize + gutterY + 3, playerSize, playerSize);
+                ctx.strokeRect(gutterX + 8, gutterY + equipmentSlotSize + gutterY + 3, playerSize, playerSize);
+
+                ctx.font = "20px Arial";
+                ctx.fillStyle = '#000000';
+                ctx.fillText("9", gutterX + 8 + 48, gutterY + equipmentSlotSize + gutterY + 3 + 22);
+
+                //hp
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(gutterX, gutterY + equipmentSlotSize + gutterY + playerSize + gutterY + 5, 80, 10)
+
+                //mp
+                ctx.fillStyle = '#0000ff';
+                ctx.fillRect(gutterX, gutterY + equipmentSlotSize + gutterY + playerSize + gutterY + 10 + gutterY, 80, 10)
+
+                //聊天框
+                let rightX = gutterX * 3 + equipmentSlotSize * 3 + gutterX;
+                ctx.fillStyle = '#E7E3B6';
+                let messageboxHeight = 25;
+                ctx.fillRect(rightX, gutterY, 240 - rightX - 5, messageboxHeight)
+                ctx.font = "20px Arial";
+                ctx.fillStyle = '#000000';
+                ctx.fillText("50/300", rightX + 45, 25);
+                let rightGutterX = 5;
+                //背包
+                ctx.strokeStyle = "#00ff00"
+                let itemSize = 45;
+
+                let item = new Image();
+                item.src = "/img/item/coin.png";
+                item.onload = () => {
+                    ctx.strokeStyle = "#ffffff"
+                    ctx.drawImage(item, rightX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                    ctx.strokeRect(rightX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                }
+
+
+                if (this.backPack[0]) {
+                    let item = new Image();
+                    item.src = "/img/item/" + this.backPack[0].filename;
+                    item.onload = () => {
+                        ctx.strokeStyle = "#ffffff"
+                        ctx.drawImage(item, rightX + itemSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                        ctx.strokeRect(rightX + itemSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                    }
+                } else {
+                    ctx.strokeRect(rightX + itemSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                }
+
+                if (this.backPack[1]) {
+                    let item = new Image();
+                    item.src = "/img/item/" + this.backPack[1].filename;
+                    item.onload = () => {
+                        ctx.strokeStyle = "#ffffff"
+                        ctx.drawImage(item, rightX + itemSize + rightGutterX + itemSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                        ctx.strokeRect(rightX + itemSize + rightGutterX + itemSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                    }
+                } else {
+                    ctx.strokeRect(rightX + itemSize + rightGutterX + itemSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2, itemSize, itemSize)
+                }
+
+
+
+                //携带的技能
+                ctx.strokeStyle = "#ccc"
+                let equipmentSize = 32;
+                if (this.CarriedSkills[0]) {
+                    let item = new Image();
+                    item.src = "/img/skill/" + this.CarriedSkills[0].filename;
+                    item.onload = () => {
+                        ctx.strokeStyle = "#ffffff"
+                        ctx.drawImage(item, rightX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                        ctx.strokeRect(rightX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                    }
+                } else {
+                    ctx.strokeRect(rightX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                }
+
+                if (this.CarriedSkills[1]) {
+                    let item = new Image();
+                    item.src = "/img/skill/" + this.CarriedSkills[1].filename;
+                    item.onload = () => {
+                        ctx.strokeStyle = "#ffffff"
+                        ctx.drawImage(item, rightX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                        ctx.strokeRect(rightX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                    }
+                } else {
+                    ctx.strokeRect(rightX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                }
+
+
+                ctx.strokeStyle = "#ffff00"
+
+                if (this.CarriedMagicItems[0]) {
+                    let item = new Image();
+                    item.src = "/img/item/" + this.CarriedMagicItems[0].filename;
+                    item.onload = () => {
+                        ctx.strokeStyle = "#ffffff"
+                        ctx.drawImage(item, rightX + equipmentSize + rightGutterX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                        ctx.strokeRect(rightX + equipmentSize + rightGutterX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                    }
+                } else {
+                    ctx.strokeRect(rightX + equipmentSize + rightGutterX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                }
+
+                if (this.CarriedMagicItems[1]) {
+                    let item = new Image();
+                    item.src = "/img/item/" + this.CarriedMagicItems[1].filename;
+                    item.onload = () => {
+                        ctx.strokeStyle = "#ffffff"
+                        ctx.drawImage(item, rightX + equipmentSize + rightGutterX + equipmentSize + rightGutterX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                        ctx.strokeRect(rightX + equipmentSize + rightGutterX + equipmentSize + rightGutterX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                    }
+                } else {
+                    ctx.strokeRect(rightX + equipmentSize + rightGutterX + equipmentSize + rightGutterX + equipmentSize + rightGutterX, gutterY + messageboxHeight + gutterY * 2 + itemSize + gutterY * 2, equipmentSize, equipmentSize)
+                }
+
+            },
+            drawTaskUI() {
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+
+                ctx.fillStyle = "#ffa500"
+                ctx.font = "14px Arial";
+                ctx.fillText("新手任务", 5, 5 + 16);
+
+                ctx.fillStyle = "chocolate"
+                ctx.font = "12px Arial";
+                ctx.fillText("奖励:", 5 + 100, 5 + 16);
+                ctx.fillStyle = "yellow"
+                ctx.fillText("10金 50exp 1碎片", 5 + 100 + 32, 5 + 16);
+
+                ctx.fillStyle = "#ffffff"
+                ctx.font = "12px Arial";
+                ctx.wrapText("    旅行者，你来到一片森林，里面有很多奇怪的动物，你采集一下物资,你需要找到无根长老，获得九阴真经，然后激活开关,学会降龙十八掌。", 15, 5 + 16 + 10 + 12, 215, 16);
+
+                ctx.fillStyle = "green"
+                ctx.font = "14px Arial";
+                ctx.fillText("目标:", 5, 122)
+
+                ctx.fillStyle = "crimson"
+                ctx.font = "18px Arial";
+                //ctx.fillText("0/9花  0/20怪",5+14*5,123)
+                ctx.fillText("去找丐帮帮主要一本书", 5 + 14 * 3, 123)
+            },
+            drawItemWareUI(){
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#999';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1;
+
+                let dir = "/img/item/";
+                this.drawInteractableNineGrid(ctx,dir,this.itemWarehouse,1);
+                
+            },
+            gotoItemWareUI() {
+                this.currentUIType = UIType.ITEMWAREHOUSE;
+                this.currentChoosedIndex = -1;
+                this.drawItemWareUI();
+                
+            },
+            drawEquipmentWareUI(){
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 1;
+
+                let dir = "/img/equipment/";
+                this.drawInteractableNineGrid(ctx,dir,this.equipmentWarehouse,1);
+            },
+            gotoEquipmentWareUI() {
+                this.currentUIType = UIType.EQUIPMENTWAREHOUSE;
+                this.currentChoosedIndex = -1;
+
+                this.drawEquipmentWareUI();
+            },
+            gotoWorkbenchUI() {
+                this.currentUIType = UIType.WORKBENCH;
+                this.currentChoosedIndex = -1;
+
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.lineWidth = 2;
+                let item = new Image();
+                item.src = "/img/item/peifang.png";
+                item.onload = ()=>{
+                    ctx.drawImage(item,16,14,64,64);
+                    ctx.strokeRect(16,14,64,64);
+                }
+                
+
+                ctx.lineWidth = 1;
+                let size = 36;
+                let gap = 4;
+                let x = 110;
+                let y = 5;
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        let index = j + i * 3;
+                        ctx.strokeRect(gap + x + (gap + size) * j, gap + y + (gap + size) * i, size, size);
+                 
+                    }
+                }
+            },
+            drawMonsterUI(){
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#cccccc';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.lineWidth = 1;
+
+                let dir = "/img/monster/";
+                this.drawInteractableNineGrid(ctx,dir,this.monsterList,1);
+
+                let item = new Image();
+                item.src = dir + this.monsterList[9].filename;
+                item.onload = () => {
+                    ctx.strokeStyle = '#000000';
+                    ctx.drawImage(item, 160, 10, 64, 64)
+                    ctx.strokeRect(160, 10, 64, 64);
+                }
+            },
+            gotoMonsterUI() {
+                this.currentUIType = UIType.MONSTERLIST;
+                this.currentChoosedIndex = -1;
+
+                this.drawMonsterUI();               
+            },
+            gotoMagicUI() {
+                this.currentUIType = UIType.MAGIC;
+                this.currentChoosedIndex = -1;
+
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 1;
+
+                let arr = this.skillList.filter((val) => { return val.type === "1" });
+                console.log("arr", arr);
+                let size = 60;
+                let gap = 10;
+                for (let j = 0; j < 3; j++) {
+                    if (arr[j]) {
+                        let item = new Image();
+                        let dir = "/img/skill/";
+                        item.src = dir + arr[j].filename;
+                        item.onload = () => {
+                            ctx.drawImage(item, gap + 10 + (gap + size) * j, gap, size, size)
+                            ctx.strokeRect(gap + 10 + (gap + size) * j, gap, size, size);
+                        }
+                    } else {
+                        ctx.strokeRect(gap + 10 + (gap + size) * j, gap, size, size);
+                    }
+
+                }
+
+            },
+            isHaveSkillByName(name) {
+                if (name === "taiji") {
+                    return true;
+                }
+
+                for (let i = 0; i < this.skillList.length; i++) {
+                    if (this.skillList[i].name === name) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            drawShootSkillUI(){
+                let dir = "/img/skill/";
+                let skills = ["dui", "gen", "kan", "kun", "taiji", "li", "qian", "xun", "zhen"];
+                let filenames = [
+                    "dui.png",
+                    "gen.png",
+                    "kan.png",
+                    "kun.png",
+                    "taiji.png",
+                    "li.png",
+                    "qian.png",
+                    "xun.png",
+                    "zhen.png"
+                ]
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ccc';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+
+                let size = 32;
+                let gap = 8;
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        let index = j + i * 3;
+                        if (this.isHaveSkillByName(skills[index])) {
+                            let shootskill = new Image();
+                            shootskill.src = dir + filenames[index];
+                            shootskill.onload = () => {
+                                if(this.currentChoosedIndex == index){
+                                    ctx.strokeStyle = '#ff0000';
+                                }else{
+                                    ctx.strokeStyle = '#ffffff';
+                                }
+                                ctx.drawImage(shootskill, gap + 4 + (gap + size) * j, gap + (gap + size) * i, size, size)
+                                ctx.strokeRect(gap + 4 + (gap + size) * j, gap + (gap + size) * i, size, size);
+                            }
+                        } else {
+                            if(this.currentChoosedIndex == index){
+                                ctx.strokeStyle = '#ff0000';
+                            }else{
+                                ctx.strokeStyle = '#ffffff';
+                            }
+                            ctx.strokeRect(gap + 4 + (gap + size) * j, gap + (gap + size) * i, size, size);
+                        }
+                    }
+                }
+            },
+            gotoShootSkillUI() {
+                this.currentUIType = UIType.SHOOTSKILL;
+                this.currentChoosedIndex = -1;
+
+                this.drawShootSkillUI();
+            },
+            gotoFightUI() {
+                this.currentUIType = UIType.FIGHT;
+                this.currentChoosedIndex = -1;
+
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 1;
+
+                let warrior = new Image();
+                warrior.src = "/img/lixin.png";
+                warrior.onload = () => {
+                    ctx.drawImage(warrior, 16, 16, 64, 64)
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(16 - 5, 16 - 5, 64 + 10, 64 + 10);
+                }
+
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(16 - 5, 80 + 16, 74, 10)
+                ctx.fillStyle = '#0000ff';
+                ctx.fillRect(16 - 5, 80 + 16 + 12, 74, 10)
+
+                let monster = new Image();
+                monster.src = "/img/monster/optin-monster.png";
+                monster.onload = () => {
+                    ctx.fillStyle = "#fff"
+                    ctx.fillRect(240 - 16 - 64, 16, 64, 64)
+                    ctx.drawImage(monster, 240 - 16 - 64, 16, 64, 64)
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(240 - 16 - 64 - 5, 16 - 5, 64 + 10, 64 + 10);
+                }
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(240 - 16 - 64 - 5, 16 + 85, 74, 10)
+
+            },
+            gotoCharacterUI() {
+                this.currentUIType = UIType.PERSONDATA;
+                this.currentChoosedIndex = -1;
+
+                var canvas = document.getElementById('stickcplus2Lcd');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 240, 135);
+
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 1;
+
+                let warrior = new Image();
+                warrior.src = "/img/lixin.png";
+                warrior.onload = () => {
+                    ctx.drawImage(warrior, 16, 16, 64, 64)
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(16 - 5, 16 - 5, 64 + 10, 64 + 10);
+                }
+
+                ctx.fillStyle = "#ffa500"
+                ctx.font = "16px Arial";
+                ctx.fillText("人物属性", 95, 20)
+
+                ctx.font = "14px Arial";
+                ctx.fillStyle = "#ffff00"
+                ctx.fillText("法师", 240 - 35, 20)
+                ctx.fillStyle = "#00a500"
+                ctx.fillText("力量：5", 100, 40)
+                ctx.fillText("敏捷：8", 100, 60)
+                ctx.fillText("体质：10", 100, 80)
+                ctx.fillText("点数：10", 100, 100)
+                ctx.fillText("攻击：10", 100, 120)
+
+                ctx.fillText("智力：5", 100 + 70, 40)
+                ctx.fillText("感知：12", 100 + 70, 60)
+                ctx.fillText("魅力：16", 100 + 70, 80)
+                ctx.fillText("等级：16", 100 + 70, 100)
+                ctx.fillText("防御：16", 100 + 70, 120)
+            }
+
+        }
+    })
+
+    app.use(ElementPlus);
+    app.mount('#app')
+</script>
+
+</html>
